@@ -667,6 +667,65 @@
             }
         }
 
+        // Display turn-by-turn directions
+        function displayDirections(directions) {
+            const directionsDiv = document.getElementById('directions');
+            if (!directionsDiv) {
+                // Create directions div if it doesn't exist
+                const container = document.querySelector('.container');
+                const newDiv = document.createElement('div');
+                newDiv.id = 'directions';
+                newDiv.className = 'card';
+                newDiv.style.marginTop = '20px';
+                container.insertBefore(newDiv, document.getElementById('resultsCard'));
+            }
+            
+            const directionsElement = document.getElementById('directions');
+            
+            let html = '<h2><i class="fas fa-directions"></i> Turn-by-Turn Directions</h2>';
+            html += '<div style="max-height: 400px; overflow-y: auto; padding: 10px;">';
+            
+            directions.forEach((step, index) => {
+                const icon = getDirectionIcon(step.type);
+                html += `
+                    <div style="padding: 10px; margin: 5px 0; background: #f3f4f6; border-left: 3px solid #10b981; border-radius: 4px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">${icon}</span>
+                            <div style="flex: 1;">
+                                <strong>${index + 1}. ${step.instruction}</strong>
+                                ${step.distance ? `<div style="color: #6b7280; font-size: 14px;">${step.distance}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            directionsElement.innerHTML = html;
+            directionsElement.style.display = 'block';
+        }
+        
+        // Get icon for direction type
+        function getDirectionIcon(type) {
+            const icons = {
+                'depart': '🚀',
+                'arrive': '🏁',
+                'turn-right': '➡️',
+                'turn-left': '⬅️',
+                'slight-right': '↗️',
+                'slight-left': '↖️',
+                'sharp-right': '⤴️',
+                'sharp-left': '⤵️',
+                'continue': '⬆️',
+                'merge': '🔀',
+                'ramp-right': '🛣️',
+                'ramp-left': '🛣️',
+                'roundabout': '🔄',
+                'uturn': '↩️'
+            };
+            return icons[type] || '➡️';
+        }
+
         // Decode Valhalla polyline (encoded polyline format)
         function decodePolyline(encoded, precision = 6) {
             const factor = Math.pow(10, precision);
@@ -750,6 +809,11 @@
                         // Fit map to show full route
                         const bounds = L.latLngBounds([from, to]);
                         map.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                    
+                    // Display turn-by-turn directions if available
+                    if (result.data.directions && result.data.directions.length > 0) {
+                        displayDirections(result.data.directions);
                     }
                     
                     // Build success message

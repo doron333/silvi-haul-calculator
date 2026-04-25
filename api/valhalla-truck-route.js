@@ -89,6 +89,13 @@ module.exports = async (req, res) => {
             .filter(m => m.type === 'warning' || m.verbal_pre_transition_instruction)
             .map(m => m.instruction || m.verbal_pre_transition_instruction);
         
+        // Extract turn-by-turn directions
+        const directions = route.maneuvers.map(m => ({
+            instruction: m.instruction || m.verbal_transition_alert_instruction || 'Continue',
+            distance: m.length ? `${(m.length * 0.621371).toFixed(1)} mi` : null,
+            type: m.type || 'continue'
+        }));
+        
         const tollCost = calculateTollCost(tollBooths, specs.axle_count);
         
         res.status(200).json({
@@ -98,6 +105,7 @@ module.exports = async (req, res) => {
                 duration: summary.time / 60,
                 polyline: route.shape,
                 warnings: warnings,
+                directions: directions,
                 tollBooths: tollBooths.length,
                 estimatedTollCost: tollCost,
                 hasTolls: tollBooths.length > 0,

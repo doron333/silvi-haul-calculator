@@ -478,11 +478,118 @@
             word-wrap: break-word;
         }
 
+        /* Quote History Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: #dc2626;
+        }
+
+        .quote-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .quote-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .quote-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .quote-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .quote-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quote-actions button {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .btn-load {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .input-grid { grid-template-columns: 1fr; }
             .rate-amount { font-size: 3.5rem; }
             .detail-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 1rem; }
+            .quote-table { font-size: 0.875rem; }
         }
     </style>
 </head>
@@ -710,6 +817,23 @@
             <button class="btn btn-ai btn-large" onclick="calculateWithAI()">
                 <i class="fas fa-robot"></i>
                 Calculate with AI (Requires Server)
+            </button>
+
+            <!-- Save & Export Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;" id="saveExportButtons">
+                <button class="btn" onclick="saveQuote()" style="background: #10b981; display: none;" id="saveQuoteBtn">
+                    <i class="fas fa-save"></i>
+                    Save Quote
+                </button>
+                <button class="btn" onclick="exportToPDF()" style="background: #ef4444; display: none;" id="exportPDFBtn">
+                    <i class="fas fa-file-pdf"></i>
+                    Export PDF
+                </button>
+            </div>
+
+            <button class="btn" onclick="showQuoteHistory()" style="background: #6b7280; margin-top: 0.75rem; width: 100%;">
+                <i class="fas fa-history"></i>
+                View Quote History
             </button>
         </div>
 
@@ -1182,6 +1306,9 @@
             
             document.getElementById('resultsCard').classList.add('show');
             document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Show Save/Export buttons
+            showSaveExportButtons();
         }
 
         // Calculate with AI (optional - requires backend server)
@@ -1334,6 +1461,230 @@
             document.getElementById('apiResponse').textContent = 
                 JSON.stringify(data, null, 2);
         }
+
+        // ==================== QUOTE SAVE/EXPORT/HISTORY FUNCTIONS ====================
+
+        // Save current quote to localStorage
+        function saveQuote() {
+            const quoteData = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                jobAddress: document.getElementById('jobAddress').value,
+                distance: currentDistance,
+                duration: currentDuration,
+                rate: parseFloat(document.getElementById('rateValue').textContent.replace('$', '')),
+                fuelPrice: parseFloat(document.getElementById('fuelPrice').value),
+                material: document.getElementById('material').value,
+                truckType: document.getElementById('truckType').value,
+                tollCost: window.currentTollCost || 0,
+                hasTolls: window.hasTolls || false
+            };
+
+            // Get existing quotes
+            const quotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
+            quotes.unshift(quoteData); // Add to beginning
+
+            // Keep only last 100 quotes
+            if (quotes.length > 100) quotes.pop();
+
+            localStorage.setItem('savedQuotes', JSON.stringify(quotes));
+
+            showAlert('success', '✅ Quote saved successfully!');
+        }
+
+        // Export current quote to PDF
+        async function exportToPDF() {
+            showLoading('Generating PDF...');
+            
+            try {
+                // Load jsPDF library dynamically
+                if (typeof jspdf === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                    document.head.appendChild(script);
+                    
+                    await new Promise((resolve) => {
+                        script.onload = resolve;
+                    });
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(37, 99, 235);
+                doc.text('Silvi Haul Rate Quote', 20, 20);
+
+                // Date
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 30);
+
+                // Job Details
+                doc.setFontSize(14);
+                doc.setTextColor(0);
+                doc.text('Job Details', 20, 45);
+                
+                doc.setFontSize(11);
+                const jobAddr = document.getElementById('jobAddress').value;
+                doc.text(`Address: ${jobAddr}`, 20, 55);
+                doc.text(`Distance: ${currentDistance.toFixed(1)} miles`, 20, 62);
+                doc.text(`Drive Time: ${Math.round(currentDuration)} minutes`, 20, 69);
+                doc.text(`Material: ${document.getElementById('material').value}`, 20, 76);
+                doc.text(`Truck Type: ${document.getElementById('truckType').value}`, 20, 83);
+
+                // Costs
+                doc.setFontSize(14);
+                doc.text('Cost Breakdown', 20, 100);
+                
+                doc.setFontSize(11);
+                const fuelPrice = parseFloat(document.getElementById('fuelPrice').value);
+                doc.text(`Fuel Price: $${fuelPrice.toFixed(2)}/gal`, 20, 110);
+                
+                if (window.hasTolls) {
+                    doc.text(`Toll Cost: $${window.currentTollCost.toFixed(2)} (round trip)`, 20, 117);
+                }
+
+                // Recommended Rate
+                doc.setFontSize(18);
+                doc.setTextColor(37, 99, 235);
+                const rate = document.getElementById('rateValue').textContent;
+                doc.text(`Recommended Rate: ${rate}/ton`, 20, 140);
+
+                // Footer
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text('Generated by Silvi Haul Rate Calculator', 20, 280);
+
+                // Save
+                doc.save(`Silvi_Quote_${Date.now()}.pdf`);
+                
+                hideLoading();
+                showAlert('success', '✅ PDF exported successfully!');
+            } catch (error) {
+                hideLoading();
+                showAlert('error', '❌ PDF export failed: ' + error.message);
+            }
+        }
+
+        // Show quote history modal
+        function showQuoteHistory() {
+            const quotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
+            const modal = document.getElementById('quoteHistoryModal');
+            const content = document.getElementById('quoteHistoryContent');
+
+            if (quotes.length === 0) {
+                content.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No saved quotes yet. Calculate and save a quote to see it here!</p>';
+            } else {
+                let html = `
+                    <table class="quote-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Address</th>
+                                <th>Distance</th>
+                                <th>Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                quotes.forEach((quote, index) => {
+                    const date = new Date(quote.timestamp).toLocaleDateString();
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${quote.jobAddress.substring(0, 40)}...</td>
+                            <td>${quote.distance.toFixed(1)} mi</td>
+                            <td>$${quote.rate.toFixed(2)}/ton</td>
+                            <td class="quote-actions">
+                                <button class="btn-load" onclick="loadQuote(${index})">Load</button>
+                                <button class="btn-delete" onclick="deleteQuote(${index})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                content.innerHTML = html;
+            }
+
+            modal.classList.add('show');
+        }
+
+        // Close quote history modal
+        function closeQuoteHistory() {
+            document.getElementById('quoteHistoryModal').classList.remove('show');
+        }
+
+        // Load a saved quote
+        function loadQuote(index) {
+            const quotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
+            const quote = quotes[index];
+
+            if (!quote) return;
+
+            // Populate form fields
+            document.getElementById('jobAddress').value = quote.jobAddress;
+            document.getElementById('distance').value = quote.distance.toFixed(1);
+            document.getElementById('driveTime').value = Math.round(quote.duration);
+            document.getElementById('fuelPrice').value = quote.fuelPrice.toFixed(2);
+            document.getElementById('material').value = quote.material;
+            document.getElementById('truckType').value = quote.truckType;
+            document.getElementById('rateValue').textContent = `$${quote.rate.toFixed(2)}`;
+
+            // Update globals
+            currentDistance = quote.distance;
+            currentDuration = quote.duration;
+            window.currentTollCost = quote.tollCost;
+            window.hasTolls = quote.hasTolls;
+
+            // Show results
+            document.getElementById('configCard').style.display = 'block';
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('saveQuoteBtn').style.display = 'block';
+            document.getElementById('exportPDFBtn').style.display = 'block';
+
+            closeQuoteHistory();
+            showAlert('success', '✅ Quote loaded!');
+        }
+
+        // Delete a saved quote
+        function deleteQuote(index) {
+            if (!confirm('Delete this quote?')) return;
+
+            const quotes = JSON.parse(localStorage.getItem('savedQuotes') || '[]');
+            quotes.splice(index, 1);
+            localStorage.setItem('savedQuotes', JSON.stringify(quotes));
+
+            showQuoteHistory(); // Refresh the modal
+            showAlert('success', '✅ Quote deleted!');
+        }
+
+        // Show Save/Export buttons after calculation
+        function showSaveExportButtons() {
+            document.getElementById('saveQuoteBtn').style.display = 'block';
+            document.getElementById('exportPDFBtn').style.display = 'block';
+        }
+
+        // ==================== END QUOTE FUNCTIONS ====================
+
     </script>
+
+    <!-- Quote History Modal -->
+    <div class="modal" id="quoteHistoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-history"></i> Saved Quotes</h2>
+                <button class="modal-close" onclick="closeQuoteHistory()">×</button>
+            </div>
+            <div id="quoteHistoryContent">
+                <p>No saved quotes yet.</p>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

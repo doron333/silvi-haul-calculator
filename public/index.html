@@ -1003,13 +1003,12 @@
                 // Calculate routes from ALL plants
                 const plantResults = [];
                 
-                for (const plant of LOCATIONS) {
+                for (let i = 0; i < LOCATIONS.length; i++) {
+                    const plant = LOCATIONS[i];
+                    
+                    showLoading(`Calculating route from ${plant.code} (${i+1}/${LOCATIONS.length})...`);
+                    
                     try {
-                        const dist = calculateDistance(jobCoords.lat, jobCoords.lng, plant.lat, plant.lng);
-                        
-                        // Calculate route for this plant
-                        showLoading(`Calculating route from ${plant.code}...`);
-                        
                         const routeResponse = await fetch('/api/valhalla-truck-route', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1021,25 +1020,41 @@
                             })
                         });
                         
+                        if (!routeResponse.ok) {
+                            console.error(`HTTP ${routeResponse.status} for ${plant.code}`);
+                            continue;
+                        }
+                        
                         const routeData = await routeResponse.json();
                         
-                        if (routeData.success) {
+                        if (routeData.success && routeData.data) {
                             plantResults.push({
                                 plant: plant,
                                 distance: routeData.data.distance,
                                 duration: routeData.data.duration,
                                 tollCost: routeData.data.estimatedTollCost || 0,
                                 hasTolls: routeData.data.hasTolls || false,
-                                routingEngine: routeData.data.routingEngine
+                                routingEngine: routeData.data.routingEngine,
+                                polyline: routeData.data.polyline
                             });
+                        } else {
+                            console.error(`Invalid data from ${plant.code}:`, routeData);
                         }
+                        
+                        // Wait 2 seconds between requests to avoid overwhelming the API
+                        if (i < LOCATIONS.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                        
                     } catch (error) {
                         console.error(`Failed to calculate route from ${plant.code}:`, error);
+                        showLoading(`Error with ${plant.code}, continuing...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 }
                 
                 if (plantResults.length === 0) {
-                    throw new Error('Could not calculate routes from any plant');
+                    throw new Error('Could not calculate routes from any plant. The routing service may be temporarily unavailable. Please try again.');
                 }
                 
                 // Sort by total cost (distance + tolls)
@@ -1091,6 +1106,17 @@
                             ${result.hasTolls ? `<div style="font-size: 0.875rem; color: #f59e0b;">Tolls: $${result.tollCost.toFixed(2)}</div>` : ''}
                         `);
                 });
+                
+                // Draw route line for the closest plant
+                if (closest.polyline) {
+                    const decodedCoords = decodePolyline(closest.polyline);
+                    if (routeLine) map.removeLayer(routeLine);
+                    routeLine = L.polyline(decodedCoords, { 
+                        color: '#10b981',
+                        weight: 5,
+                        opacity: 0.8
+                    }).addTo(map);
+                }
                 
                 // Fit map to show job + all plants
                 const allPoints = [[jobCoords.lat, jobCoords.lng], ...plantResults.map(r => [r.plant.lat, r.plant.lng])];

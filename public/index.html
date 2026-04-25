@@ -667,6 +667,46 @@
             }
         }
 
+        // Decode Valhalla polyline (encoded polyline format)
+        function decodePolyline(encoded, precision = 6) {
+            const factor = Math.pow(10, precision);
+            let index = 0;
+            let lat = 0;
+            let lng = 0;
+            const coordinates = [];
+            
+            while (index < encoded.length) {
+                let b;
+                let shift = 0;
+                let result = 0;
+                
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                
+                const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+                
+                shift = 0;
+                result = 0;
+                
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                
+                const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+                
+                coordinates.push([lat / factor, lng / factor]);
+            }
+            
+            return coordinates;
+        }
+
         // Calculate route with Valhalla Truck Routing
         async function calculateRoute(from, to) {
             const truckType = document.getElementById('truckType')?.value || 'triaxle';
@@ -695,6 +735,22 @@
                     // Store toll information globally
                     window.currentTollCost = result.data.estimatedTollCost || 0;
                     window.hasTolls = result.data.hasTolls || false;
+                    
+                    // Draw route line on map if polyline data exists
+                    if (result.data.polyline) {
+                        // Valhalla returns encoded polyline - decode it
+                        const decodedCoords = decodePolyline(result.data.polyline);
+                        if (routeLine) map.removeLayer(routeLine);
+                        routeLine = L.polyline(decodedCoords, { 
+                            color: '#10b981',  // Green for truck-legal route
+                            weight: 5,
+                            opacity: 0.8
+                        }).addTo(map);
+                        
+                        // Fit map to show full route
+                        const bounds = L.latLngBounds([from, to]);
+                        map.fitBounds(bounds, { padding: [50, 50] });
+                    }
                     
                     // Build success message
                     let message = `Route calculated using ${result.data.routingEngine}\n`;

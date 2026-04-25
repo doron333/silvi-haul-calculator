@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
     
     try {
         const response = await axios.post(
-            'https://valhalla.openstreetmap.de/route',
+            'https://valhalla1.openstreetmap.de/route',
             {
                 locations: [
                     { lat: from.lat, lon: from.lng },

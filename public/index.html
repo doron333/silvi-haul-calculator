@@ -372,10 +372,117 @@
         .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; }
         .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
 
+        .route-details {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .route-details.show { display: block; }
+
+        .route-details h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-dark);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .detail-value.success {
+            color: #10b981;
+        }
+
+        .detail-value.warning {
+            color: #f59e0b;
+        }
+
+        .detail-value.error {
+            color: #ef4444;
+        }
+
+        .toll-breakdown {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            margin-top: 1rem;
+        }
+
+        .toll-breakdown h4 {
+            margin: 0 0 0.75rem 0;
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+
+        .toll-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #fef3c7;
+            font-size: 0.9rem;
+        }
+
+        .toll-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: #92400e;
+        }
+
+        .api-response {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .api-response pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .input-grid { grid-template-columns: 1fr; }
             .rate-amount { font-size: 3.5rem; }
+            .detail-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -429,6 +536,85 @@
 
             <div class="alert alert-error" id="errorAlert"></div>
             <div class="alert alert-success" id="successAlert"></div>
+
+            <!-- Route Details Section -->
+            <div class="route-details" id="routeDetails">
+                <h3><i class="fas fa-route"></i> Route Details & Verification</h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Routing Engine</div>
+                        <div class="detail-value success" id="detailEngine">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Truck Type</div>
+                        <div class="detail-value" id="detailTruck">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Distance</div>
+                        <div class="detail-value" id="detailDistance">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Drive Time</div>
+                        <div class="detail-value" id="detailTime">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Axle Count</div>
+                        <div class="detail-value" id="detailAxles">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Truck Weight</div>
+                        <div class="detail-value" id="detailWeight">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Truck Height</div>
+                        <div class="detail-value" id="detailHeight">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Truck Width</div>
+                        <div class="detail-value" id="detailWidth">-</div>
+                    </div>
+                </div>
+
+                <!-- Toll Details -->
+                <div class="toll-breakdown" id="tollBreakdown" style="display: none;">
+                    <h4>💰 Toll Cost Breakdown</h4>
+                    <div class="toll-item">
+                        <span>Toll Plazas on Route:</span>
+                        <span id="tollPlazas">-</span>
+                    </div>
+                    <div class="toll-item">
+                        <span>Avg Car Toll:</span>
+                        <span id="tollCarRate">-</span>
+                    </div>
+                    <div class="toll-item">
+                        <span>Truck Multiplier:</span>
+                        <span id="tollMultiplier">-</span>
+                    </div>
+                    <div class="toll-item">
+                        <span>Avg Truck Toll:</span>
+                        <span id="tollTruckRate">-</span>
+                    </div>
+                    <div class="toll-item">
+                        <span>Direction:</span>
+                        <span id="tollDirection">Round Trip (×2)</span>
+                    </div>
+                    <div class="toll-item">
+                        <span><strong>Total Toll Cost:</strong></span>
+                        <span id="tollTotal">-</span>
+                    </div>
+                </div>
+
+                <!-- Raw API Response (for debugging) -->
+                <details style="margin-top: 1rem;">
+                    <summary style="cursor: pointer; font-weight: 600; color: #6b7280; padding: 0.5rem 0;">
+                        <i class="fas fa-code"></i> View Raw API Response (Debug)
+                    </summary>
+                    <div class="api-response">
+                        <pre id="apiResponse">{}</pre>
+                    </div>
+                </details>
+            </div>
         </div>
 
         <div id="map"></div>
@@ -795,6 +981,9 @@
                     window.currentTollCost = result.data.estimatedTollCost || 0;
                     window.hasTolls = result.data.hasTolls || false;
                     
+                    // Display comprehensive route details for verification
+                    displayRouteDetails(result.data);
+                    
                     // Draw route line on map if polyline data exists
                     if (result.data.polyline) {
                         // Valhalla returns encoded polyline - decode it
@@ -1092,6 +1281,58 @@
 
         function hideLoading() {
             document.getElementById('loading').classList.remove('show');
+        }
+
+        // Display comprehensive route details for verification
+        function displayRouteDetails(data) {
+            // Show the details section
+            document.getElementById('routeDetails').classList.add('show');
+            
+            // Populate main details
+            document.getElementById('detailEngine').textContent = data.routingEngine || 'Unknown';
+            document.getElementById('detailEngine').className = 'detail-value ' + 
+                (data.routingEngine?.includes('Valhalla') ? 'success' : 'warning');
+            
+            document.getElementById('detailTruck').textContent = data.truckType || '-';
+            document.getElementById('detailDistance').textContent = 
+                `${data.distance.toFixed(1)} miles`;
+            document.getElementById('detailTime').textContent = 
+                `${Math.round(data.duration)} min`;
+            
+            // Truck specifications
+            if (data.truckSpecs) {
+                document.getElementById('detailAxles').textContent = 
+                    data.truckSpecs.axle_count || '-';
+                document.getElementById('detailWeight').textContent = 
+                    `${data.truckSpecs.weight} tons`;
+                document.getElementById('detailHeight').textContent = 
+                    `${data.truckSpecs.height}m (${(data.truckSpecs.height * 3.28084).toFixed(1)}')`;
+                document.getElementById('detailWidth').textContent = 
+                    `${data.truckSpecs.width}m (${(data.truckSpecs.width * 3.28084).toFixed(1)}')`;
+            }
+            
+            // Toll breakdown
+            if (data.hasTolls && data.tollBooths > 0) {
+                document.getElementById('tollBreakdown').style.display = 'block';
+                document.getElementById('tollPlazas').textContent = data.tollBooths;
+                
+                // Calculate toll details
+                const avgCarToll = 2.00;
+                const tollMultipliers = { 2: 2.0, 3: 2.5, 4: 3.0 };
+                const multiplier = tollMultipliers[data.truckSpecs?.axle_count] || 2.5;
+                const avgTruckToll = avgCarToll * multiplier;
+                
+                document.getElementById('tollCarRate').textContent = `$${avgCarToll.toFixed(2)}`;
+                document.getElementById('tollMultiplier').textContent = `${multiplier}x (${data.truckSpecs?.axle_count}-axle)`;
+                document.getElementById('tollTruckRate').textContent = `$${avgTruckToll.toFixed(2)}`;
+                document.getElementById('tollTotal').textContent = `$${data.estimatedTollCost.toFixed(2)}`;
+            } else {
+                document.getElementById('tollBreakdown').style.display = 'none';
+            }
+            
+            // Raw API response for debugging
+            document.getElementById('apiResponse').textContent = 
+                JSON.stringify(data, null, 2);
         }
     </script>
 </body>

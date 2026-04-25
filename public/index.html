@@ -616,7 +616,7 @@
                 </div>
                 <div class="feature-badge">
                     <i class="fas fa-map-marked-alt"></i>
-                    70+ Locations
+                    4 Silvi Plants
                 </div>
             </div>
         </div>
@@ -872,16 +872,48 @@
     <script>
         // Quarry locations database
         const LOCATIONS = [
-            { name: "Silvi Materials - Temple HQ", address: "4101 N 5th St Hwy, Temple, PA 19560", lat: 40.4091, lng: -75.9177, material: "aggregate, sand, stone", isSilvi: true, state: "PA" },
-            { name: "Silvi Materials - Fairless Hills", address: "751 Big Oak Rd, Fairless Hills, PA 19030", lat: 40.1823, lng: -74.8394, material: "aggregate, stone", isSilvi: true, state: "PA" },
-            { name: "Silvi Materials - Belle Mead", address: "1220 US Highway 206, Hillsborough, NJ 08844", lat: 40.4721, lng: -74.6632, material: "aggregate, sand", isSilvi: true, state: "NJ" },
-            { name: "Braen Stone - Haledon Quarry", address: "500 Belmont Ave, Haledon, NJ 07508", lat: 40.9420, lng: -74.1893, material: "stone, aggregate", state: "NJ" },
-            { name: "Braen Stone - Franklin", address: "110 Rte 23 South, Franklin, NJ 07416", lat: 41.0954, lng: -74.5754, material: "stone, aggregate", state: "NJ" },
-            { name: "Tilcon - Oxford", address: "130 Changebridge Rd, Montville, NJ 07045", lat: 40.8945, lng: -74.3654, material: "stone, aggregate", state: "NJ" },
-            { name: "Eureka Stone - Chalfont HQ", address: "4001 Horseshoe Pike, Honey Brook, PA 19344", lat: 40.0987, lng: -75.7654, material: "stone, aggregate", state: "PA" },
-            { name: "Pennsy Supply - Silver Spring", address: "200 Rosedale Ave, Camp Hill, PA 17011", lat: 40.2398, lng: -76.9276, material: "aggregate, sand, stone", state: "PA" },
-            { name: "Hanson - Nazareth Cement", address: "Nazareth Cement Plant, Nazareth, PA 18064", lat: 40.7443, lng: -75.3065, material: "cement", state: "PA" },
+            { 
+                name: "Silvi Sand of Port Norris (PN)", 
+                code: "PN",
+                address: "2099 Dragston Rd, Port Norris, NJ 08349", 
+                lat: 39.2167, 
+                lng: -75.0433, 
+                material: "sand, stone, aggregate", 
+                isSilvi: true, 
+                state: "NJ" 
+            },
+            { 
+                name: "Silvi Sand of Eagleswood (EW)", 
+                code: "EW",
+                address: "942 Main St Rte 9, West Creek, NJ 08092", 
+                lat: 39.6592, 
+                lng: -74.2794, 
+                material: "sand, stone, aggregate", 
+                isSilvi: true, 
+                state: "NJ" 
+            },
+            { 
+                name: "Silvi Sand of Franklin (FR)", 
+                code: "FR",
+                address: "4459 Coles Mill Rd, Williamstown, NJ 08094", 
+                lat: 39.6850, 
+                lng: -74.9828, 
+                material: "sand, stone, aggregate", 
+                isSilvi: true, 
+                state: "NJ" 
+            },
+            { 
+                name: "Silvi Stone of Belle Mead (STN)", 
+                code: "STN",
+                address: "484 County Rd 601, Belle Mead, NJ 08502", 
+                lat: 40.4721, 
+                lng: -74.6632, 
+                material: "stone, aggregate", 
+                isSilvi: true, 
+                state: "NJ" 
+            }
         ];
+
 
         let map, jobMarker, quarryMarker, routeLine;
         let currentDistance = 0, currentDuration = 0;
@@ -889,10 +921,32 @@
 
         // Initialize map
         function initMap() {
-            map = L.map('map').setView([40.2732, -74.9127], 9);
+            map = L.map('map').setView([39.8, -74.7], 8); // Centered on NJ/your plants
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+
+            // Add permanent markers for all Silvi plants
+            const silviIcon = L.divIcon({ 
+                className: 'custom-marker', 
+                html: '<div style="background: #2563eb; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🏭</div>', 
+                iconSize: [40, 40] 
+            });
+
+            LOCATIONS.forEach(plant => {
+                const marker = L.marker([plant.lat, plant.lng], { icon: silviIcon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="font-weight: bold; color: #2563eb; margin-bottom: 0.5rem;">${plant.name}</div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">${plant.address}</div>
+                        <div style="font-size: 0.875rem; margin-top: 0.5rem; color: #059669;">
+                            <strong>Materials:</strong> ${plant.material}
+                        </div>
+                        <div style="font-size: 0.75rem; margin-top: 0.5rem; background: #dbeafe; padding: 0.25rem 0.5rem; border-radius: 4px; color: #1e40af;">
+                            Plant Code: ${plant.code}
+                        </div>
+                    `);
+            });
         }
 
         initMap();

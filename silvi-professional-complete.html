@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silvi AI Platform - Professional Edition</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --ai-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ai-badge {
+            background: var(--ai-gradient);
+            color: white;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .icon-box {
+            background: var(--ai-gradient);
+            padding: 0.75rem;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--gray);
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .input-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .input-section h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        input:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ai {
+            background: var(--ai-gradient);
+            width: 100%;
+            justify-content: center;
+            font-size: 1.15rem;
+            padding: 1.25rem 2rem;
+        }
+
+        .btn-ai:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 0.65rem 1.25rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .location-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .location-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .location-card.selected {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+        }
+
+        .location-card h4 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .location-card p {
+            color: var(--gray);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin: 0.25rem 0.25rem 0 0;
+            text-transform: uppercase;
+        }
+
+        .badge-silvi { background: #fef3c7; color: #92400e; }
+        .badge-sand { background: #dbeafe; color: #1e40af; }
+        .badge-stone { background: #e0e7ff; color: #3730a3; }
+        .badge-cement { background: #f3e8ff; color: #6b21a8; }
+        .badge-aggregate { background: #d1fae5; color: #065f46; }
+        .badge-state { background: #f1f5f9; color: var(--dark); font-weight: 800; }
+
+        #map {
+            height: 600px;
+            border-radius: 15px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+            margin: 2rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--ai-gradient);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
+
+        .alert.show { display: flex; }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rate-display {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .rate-display h3 {
+            color: var(--gray);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .rate-value {
+            font-size: 4rem;
+            font-weight: 900;
+            background: var(--ai-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 1rem 0;
+        }
+
+        .factor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin: 2rem 0;
+        }
+
+        .factor-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .factor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .factor-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .factor-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .factor-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .explanation-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            margin: 2rem 0;
+        }
+
+        .explanation-box h4 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin: 2rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .comparison-table .highlight {
+            background: rgba(37, 99, 235, 0.1);
+            font-weight: 700;
+        }
+
+        .positive { color: var(--success); font-weight: 700; }
+        .negative { color: var(--danger); font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.5rem; }
+            .stats { display: none; }
+            .location-grid { grid-template-columns: 1fr; }
+            .input-row { flex-direction: column; }
+            #map { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-mountain"></i>
+                Silvi AI Platform
+                <span class="ai-badge">PRO EDITION</span>
+            </h1>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="totalLocations">54</div>
+                    <div class="stat-label">Locations</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="routesAnalyzed">0</div>
+                    <div class="stat-label">Analyzed</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <div class="icon-box">
+                    <i class="fas fa-brain fa-2x"></i>
+                </div>
+                <div>
+                    <h2>AI-Powered Haul Rate Calculator</h2>
+                    <div class="subtitle">Multi-state coverage across NJ, PA, NY, and DE with intelligent pricing analysis</div>
+                </div>
+            </div>
+
+            <!-- STEP 1: Location Selection -->
+            <div class="input-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Step 1: Enter Job Site Address</h3>
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <label>Job Site Address</label>
+                        <input type="text" id="jobAddress" placeholder="e.g., 123 Main Street, Philadelphia, PA 19103">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn" onclick="findClosestLocations()">
+                            <i class="fas fa-search"></i> Find Closest Locations
+                        </button>
+                    </div>
+                </div>
+
+                <p style="color: var(--gray); margin-top: 1rem; font-weight: 600;">Or browse all locations by material type:</p>
+                
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterLocations('all', this)">All Locations</button>
+                    <button class="filter-btn" onclick="filterLocations('silvi', this)"><i class="fas fa-star"></i> Silvi</button>
+                    <button class="filter-btn" onclick="filterLocations('sand', this)">Sand</button>
+                    <button class="filter-btn" onclick="filterLocations('stone', this)">Stone</button>
+                    <button class="filter-btn" onclick="filterLocations('cement', this)">Cement</button>
+                    <button class="filter-btn" onclick="filterLocations('aggregate', this)">Aggregate</button>
+                </div>
+
+                <div class="location-grid" id="locationGrid"></div>
+            </div>
+
+            <div class="alert alert-info" id="infoAlert">
+                <i class="fas fa-info-circle fa-2x"></i>
+                <span id="infoText"></span>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="alert alert-success" id="successAlert">
+                <i class="fas fa-check-circle fa-2x"></i>
+                <span id="successText"></span>
+            </div>
+
+            <!-- STEP 2: Route Details -->
+            <div id="routeDetails" style="display: none;">
+                <div class="input-section">
+                    <h3><i class="fas fa-route"></i> Closest Location Found</h3>
+                    <div class="factor-grid">
+                        <div class="factor-card">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <div class="factor-label">Location</div>
+                            <div class="factor-value" id="closestName" style="font-size: 1rem;"></div>
+                        </div>
+                        <div class="factor-card">
+                            <i class="fas fa-road"></i>
+                            <div class="factor-label">Distance</div>
+                            <div class="factor-value" id="closestDistance"></div>
+                        </div>
+                        <div class="factor-card">
+                            <i class="fas fa-clock"></i>
+                            <div class="factor-label">Drive Time</div>
+                            <div class="factor-value" id="closestTime"></div>
+                        </div>
+                        <div class="factor-card">
+                            <i class="fas fa-trophy"></i>
+                            <div class="factor-label">Status</div>
+                            <div class="factor-value" id="closestStatus"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Market Factors -->
+            <div class="input-section">
+                <h3><i class="fas fa-sliders-h"></i> Step 2: Market & Material Factors</h3>
+                
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-route"></i> Distance (miles)</label>
+                        <input type="number" id="distance" step="0.1" disabled>
+                    </div>
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-clock"></i> Drive Time (minutes)</label>
+                        <input type="number" id="driveTime" disabled>
+                    </div>
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-road"></i> Road Conditions</label>
+                        <select id="roadConditions">
+                            <option value="excellent">Excellent - Highway</option>
+                            <option value="good" selected>Good - Paved Roads</option>
+                            <option value="fair">Fair - Mixed</option>
+                            <option value="poor">Poor - Rough</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-truck"></i> Material Type</label>
+                        <select id="material">
+                            <option value="aggregate" selected>Aggregate/Gravel</option>
+                            <option value="sand">Sand</option>
+                            <option value="stone">Crushed Stone</option>
+                            <option value="cement">Cement</option>
+                            <option value="topsoil">Topsoil</option>
+                        </select>
+                    </div>
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-weight"></i> Monthly Volume (tons)</label>
+                        <input type="number" id="volume" value="1000" min="0">
+                    </div>
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-chart-line"></i> Market Demand</label>
+                        <select id="marketDemand">
+                            <option value="high">High Demand</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="low">Low Demand</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-gas-pump"></i> Fuel Price ($/gallon)</label>
+                        <input type="number" id="fuelPrice" value="3.50" step="0.01" min="0">
+                    </div>
+                    <div class="input-wrapper">
+                        <label><i class="fas fa-users"></i> Competition Level</label>
+                        <select id="competition">
+                            <option value="high">High - Many Competitors</option>
+                            <option value="medium" selected>Medium - Some Competitors</option>
+                            <option value="low">Low - Few Competitors</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-ai" onclick="calculateAIRate()" id="calculateBtn">
+                <i class="fas fa-brain"></i> Calculate AI-Powered Haul Rate
+            </button>
+
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section">
+                <div class="input-section">
+                    <div class="rate-display">
+                        <h3>Recommended Haul Rate</h3>
+                        <div class="rate-value" id="rateValue">$0.00</div>
+                        <p style="color: var(--gray); font-weight: 600;">per ton</p>
+                    </div>
+
+                    <div class="factor-grid" id="factorGrid"></div>
+
+                    <div class="explanation-box">
+                        <h4><i class="fas fa-lightbulb"></i> AI Analysis & Strategy</h4>
+                        <div id="explanation" style="line-height: 1.8; color: var(--dark);"></div>
+                    </div>
+
+                    <div id="comparisonSection"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem;">Processing...</h3>
+            <p id="loadingText" style="color: var(--gray);">Calculating routes...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script>
+        // ============================================
+        // CONFIGURATION & DATA
+        // ============================================
+        
+        let map = null;
+        let markers = [];
+        let polylines = [];
+        let currentFilter = 'all';
+        let routeData = null;
+        let routeCache = new Map();
+
+        const locations = [
+            // SILVI LOCATIONS
+            { name: "Silvi Materials - Temple HQ", address: "4101 N 5th Street Hwy, Temple, PA 19560", lat: 40.4091, lng: -75.9177, type: ["aggregate", "stone"], state: "PA", silvi: true },
+            { name: "Silvi - Fairless Hills", address: "550 S Olds Blvd, Fairless Hills, PA 19030", lat: 40.1783, lng: -74.8564, type: ["concrete", "cement"], state: "PA", silvi: true },
+            { name: "Silvi - Belle Mead NJ", address: "500 Amwell Rd, Belle Mead, NJ 08502", lat: 40.4635, lng: -74.6708, type: ["stone", "aggregate"], state: "NJ", silvi: true },
+            { name: "Silvi - Gibraltar Rock NJ", address: "1200 Route 31, Flemington, NJ 08822", lat: 40.4989, lng: -74.8623, type: ["stone"], state: "NJ", silvi: true },
+            
+            // NEW JERSEY
+            { name: "Braen Stone - Haledon", address: "615 Oldham Rd, Haledon, NJ 07508", lat: 40.9339, lng: -74.1868, type: ["stone", "aggregate"], state: "NJ" },
+            { name: "Braen Stone - Franklin", address: "23 Wawayanda Rd, Franklin, NJ 07416", lat: 41.1089, lng: -74.5845, type: ["stone"], state: "NJ" },
+            { name: "Braen Stone - Sparta", address: "89 Edison Rd, Sparta, NJ 07871", lat: 41.0178, lng: -74.6459, type: ["stone"], state: "NJ" },
+            { name: "Weldon - Watchung", address: "100 Johnston Dr, Watchung, NJ 07069", lat: 40.6401, lng: -74.4526, type: ["stone", "aggregate"], state: "NJ" },
+            { name: "Weldon - Lake Hopatcong", address: "1 Lakeside Blvd, Lake Hopatcong, NJ 07849", lat: 40.9489, lng: -74.6593, type: ["stone"], state: "NJ" },
+            { name: "Trap Rock - Kingston", address: "3800 NJ-27, Kingston, NJ 08528", lat: 40.3789, lng: -74.6145, type: ["stone"], state: "NJ" },
+            { name: "Clayton Block - Lakewood", address: "1200 River Ave, Lakewood, NJ 08701", lat: 40.0967, lng: -74.2076, type: ["aggregate"], state: "NJ" },
+            { name: "Tri-Borough Sand & Stone", address: "300 S Black Horse Pike, Williamstown, NJ 08094", lat: 39.6856, lng: -74.9945, type: ["sand"], state: "NJ" },
+            { name: "Ward Sand - Millville", address: "1500 N 2nd St, Millville, NJ 08332", lat: 39.4234, lng: -75.0401, type: ["sand"], state: "NJ" },
+            { name: "Ricci Bros Sand", address: "2200 Main St, Port Norris, NJ 08349", lat: 39.2423, lng: -75.0345, type: ["sand"], state: "NJ" },
+            
+            // PENNSYLVANIA
+            { name: "Eureka Stone - Chalfont", address: "Lower State Rd, Chalfont, PA 18914", lat: 40.2867, lng: -75.2089, type: ["stone", "aggregate"], state: "PA" },
+            { name: "Haines & Kibblehouse", address: "2052 Lucon Rd, Skippack, PA 19474", lat: 40.2456, lng: -75.4245, type: ["stone", "aggregate"], state: "PA" },
+            { name: "Allan Myers - Audubon", address: "2820 Audubon Rd, Audubon, PA 19403", lat: 40.1289, lng: -75.4367, type: ["aggregate"], state: "PA" },
+            { name: "Hanson - Birdsboro", address: "100 Quarry Rd, Birdsboro, PA 19508", lat: 40.2644, lng: -75.8056, type: ["aggregate"], state: "PA" },
+            { name: "Dyer Quarry", address: "345 Furnace Rd, Birdsboro, PA 19508", lat: 40.2589, lng: -75.8234, type: ["stone", "aggregate"], state: "PA" },
+            { name: "Reading Quarry", address: "3201 N 5th St, Reading, PA 19605", lat: 40.3678, lng: -75.9369, type: ["stone"], state: "PA" },
+            { name: "Martin Stone - Oxford", address: "501 Limestone Rd, Oxford, PA 19363", lat: 39.8091, lng: -75.9589, type: ["stone"], state: "PA" },
+            { name: "Independence - Secane", address: "975 Providence Rd, Secane, PA 19018", lat: 39.9123, lng: -75.3801, type: ["aggregate"], state: "PA" },
+            { name: "Eastern Industries", address: "4401 Camp Meeting Rd, Center Valley, PA 18034", lat: 40.5678, lng: -75.3912, type: ["stone", "aggregate"], state: "PA" },
+            { name: "Pennsy Supply - Gibraltar", address: "3650 Trindle Rd, Camp Hill, PA 17011", lat: 40.2234, lng: -76.9507, type: ["stone", "aggregate"], state: "PA" },
+            { name: "Pennsy Supply - Steelton", address: "50 N Front St, Steelton, PA 17113", lat: 40.2356, lng: -76.8089, type: ["aggregate"], state: "PA" },
+            { name: "Kinsley - Quarryville", address: "145 Quarry Rd, Quarryville, PA 17566", lat: 39.8734, lng: -76.1456, type: ["stone"], state: "PA" },
+            { name: "New Enterprise Stone", address: "3912 Brumbaugh Rd, New Enterprise, PA 16664", lat: 40.1678, lng: -78.4012, type: ["stone"], state: "PA" },
+            { name: "Byler Quarries", address: "2090 N Union St, Middletown, PA 17057", lat: 40.2156, lng: -76.7289, type: ["stone", "cement"], state: "PA" },
+            { name: "Valley Quarries", address: "678 Quarry Rd, Chambersburg, PA 17201", lat: 39.9378, lng: -77.6512, type: ["stone"], state: "PA" },
+            { name: "Pocono Sand & Gravel", address: "1500 PA-611, Bartonsville, PA 18321", lat: 40.9856, lng: -75.3245, type: ["sand", "aggregate"], state: "PA" },
+            
+            // NEW YORK
+            { name: "Tilcon NY - Newburgh", address: "1300 Route 300, Newburgh, NY 12550", lat: 41.5334, lng: -74.0789, type: ["stone", "aggregate"], state: "NY" },
+            { name: "Tilcon NY - West Nyack", address: "101 Corporate Dr, West Nyack, NY 10994", lat: 41.0967, lng: -73.9723, type: ["aggregate"], state: "NY" },
+            { name: "Callanan - Selkirk", address: "1 Callanan Rd, Selkirk, NY 12158", lat: 42.5456, lng: -73.8089, type: ["stone"], state: "NY" },
+            { name: "Cranesville Block", address: "45 Quarry Rd, Warwick, NY 10990", lat: 41.2534, lng: -74.3589, type: ["stone"], state: "NY" },
+            { name: "Rosendale Cement", address: "420 Main St, Rosendale, NY 12472", lat: 41.8478, lng: -74.0789, type: ["cement"], state: "NY" },
+            { name: "Scherer Bros", address: "900 Fort Salonga Rd, Northport, NY 11768", lat: 40.9089, lng: -73.3456, type: ["sand"], state: "NY" },
+            
+            // DELAWARE
+            { name: "Delaware Quarries", address: "2701 Limestone Rd, Wilmington, DE 19808", lat: 39.7734, lng: -75.5967, type: ["stone"], state: "DE" },
+            { name: "York Building - Newark", address: "1200 S College Ave, Newark, DE 19713", lat: 39.6589, lng: -75.7456, type: ["aggregate", "stone"], state: "DE" },
+            { name: "Glasgow Materials", address: "2500 Pulaski Hwy, Glasgow, DE 19702", lat: 39.6045, lng: -75.7389, type: ["sand", "aggregate"], state: "DE" },
+            { name: "Newark Sand & Gravel", address: "100 S Chapel St, Newark, DE 19711", lat: 39.6834, lng: -75.7501, type: ["sand"], state: "DE" }
+        ];
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        function initializeApp() {
+            initMap();
+            populateLocationGrid();
+            console.log('✅ App initialized with', locations.length, 'locations');
+        }
+
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView([40.5, -75.5], 8);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap',
+                    maxZoom: 19
+                }).addTo(map);
+                console.log('✅ Map initialized');
+            }
+        }
+
+        // ============================================
+        // LOCATION FILTERING & DISPLAY
+        // ============================================
+        
+        function filterLocations(type, button) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            populateLocationGrid();
+        }
+
+        function populateLocationGrid() {
+            const grid = document.getElementById('locationGrid');
+            grid.innerHTML = '';
+
+            let filtered = locations;
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'silvi') {
+                    filtered = locations.filter(loc => loc.silvi);
+                } else {
+                    filtered = locations.filter(loc => loc.type.includes(currentFilter));
+                }
+            }
+
+            filtered.forEach(loc => {
+                const card = document.createElement('div');
+                card.className = 'location-card';
+                
+                const badges = loc.type.map(t => 
+                    `<span class="badge badge-${t}">${t}</span>`
+                ).join('');
+                
+                card.innerHTML = `
+                    <h4>${loc.silvi ? '⭐ ' : ''}${loc.name}</h4>
+                    <p style="margin: 0.5rem 0;">${loc.address}</p>
+                    <div style="margin-top: 0.75rem;">
+                        <span class="badge badge-state">${loc.state}</span>
+                        ${badges}
+                    </div>
+                `;
+                
+                card.onclick = () => {
+                    document.getElementById('jobAddress').value = loc.address;
+                    document.querySelectorAll('.location-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                };
+                
+                grid.appendChild(card);
+            });
+
+            document.getElementById('totalLocations').textContent = filtered.length;
+        }
+
+        // ============================================
+        // GEOCODING & ROUTING
+        // ============================================
+        
+        async function geocode(address) {
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+                );
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lng: parseFloat(data[0].lon)
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                return null;
+            }
+        }
+
+        async function calculateRoute(origin, destination) {
+            const cacheKey = `${origin.lat},${origin.lng}-${destination.lat},${destination.lng}`;
+            
+            if (routeCache.has(cacheKey)) {
+                return routeCache.get(cacheKey);
+            }
+
+            try {
+                const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    const result = {
+                        distance: route.distance / 1609.34, // meters to miles
+                        duration: route.duration / 60, // seconds to minutes
+                        geometry: route.geometry.coordinates.map(coord => [coord[1], coord[0]])
+                    };
+                    routeCache.set(cacheKey, result);
+                    return result;
+                }
+                return null;
+            } catch (error) {
+                console.error('Routing error:', error);
+                return null;
+            }
+        }
+
+        // ============================================
+        // MAIN ROUTE FINDING FUNCTION
+        // ============================================
+        
+        async function findClosestLocations() {
+            const address = document.getElementById('jobAddress').value.trim();
+            
+            if (!address) {
+                showAlert('error', 'Please enter a job site address');
+                return;
+            }
+
+            showLoading(true, 'Geocoding address...');
+            updateProgress(10);
+
+            // Geocode destination
+            const destCoords = await geocode(address);
+            if (!destCoords) {
+                showLoading(false);
+                showAlert('error', 'Could not find that address. Please try a more specific address.');
+                return;
+            }
+
+            showInfo('Address found! Calculating routes from all 54 locations...');
+            updateProgress(20);
+
+            // Clear map
+            clearMapLayers();
+
+            // Add destination marker
+            const destMarker = L.marker([destCoords.lat, destCoords.lng], {
+                icon: L.divIcon({
+                    html: '<div style="background: #ef4444; width: 35px; height: 35px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">📍</div>',
+                    className: '',
+                    iconSize: [35, 35]
+                })
+            }).addTo(map);
+            markers.push(destMarker);
+            destMarker.bindPopup(`<b>Job Site</b><br>${address}`).openPopup();
+
+            // Calculate routes from all locations
+            const routePromises = locations.map(async (loc, index) => {
+                const route = await calculateRoute(loc, destCoords);
+                if (route) {
+                    return { ...loc, ...route };
+                }
+                return null;
+            });
+
+            updateProgress(40);
+            showLoading(true, 'Analyzing all routes...');
+
+            const results = await Promise.all(routePromises);
+            const validRoutes = results.filter(r => r !== null).sort((a, b) => a.distance - b.distance);
+
+            if (validRoutes.length === 0) {
+                showLoading(false);
+                showAlert('error', 'Could not calculate routes. Please try a different address.');
+                return;
+            }
+
+            updateProgress(80);
+
+            // Store data
+            routeData = {
+                destination: address,
+                destCoords: destCoords,
+                closest: validRoutes[0],
+                all: validRoutes
+            };
+
+            // Add closest location marker
+            const closest = validRoutes[0];
+            const closestMarker = L.marker([closest.lat, closest.lng], {
+                icon: L.divIcon({
+                    html: `<div style="background: ${closest.silvi ? '#2563eb' : '#10b981'}; width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; color: white;">${closest.silvi ? '⭐' : '1'}</div>`,
+                    className: '',
+                    iconSize: [40, 40]
+                })
+            }).addTo(map);
+            markers.push(closestMarker);
+            closestMarker.bindPopup(`<b>${closest.name}</b><br>CLOSEST: ${closest.distance.toFixed(1)} mi`);
+
+            // Draw route
+            if (closest.geometry) {
+                const polyline = L.polyline(closest.geometry, {
+                    color: closest.silvi ? '#2563eb' : '#10b981',
+                    weight: 5,
+                    opacity: 0.7
+                }).addTo(map);
+                polylines.push(polyline);
+                map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+            }
+
+            // Update UI
+            document.getElementById('distance').value = closest.distance.toFixed(2);
+            document.getElementById('driveTime').value = Math.round(closest.duration);
+            
+            document.getElementById('closestName').textContent = closest.name;
+            document.getElementById('closestDistance').textContent = `${closest.distance.toFixed(1)} mi`;
+            document.getElementById('closestTime').textContent = `${Math.round(closest.duration)} min`;
+            
+            const silviRoutes = validRoutes.filter(r => r.silvi);
+            if (closest.silvi) {
+                document.getElementById('closestStatus').innerHTML = '<span class="positive">SILVI WINS! ✓</span>';
+            } else if (silviRoutes.length > 0) {
+                const diff = (silviRoutes[0].distance - closest.distance).toFixed(1);
+                document.getElementById('closestStatus').innerHTML = `<span class="negative">+${diff} mi</span>`;
+            } else {
+                document.getElementById('closestStatus').textContent = 'N/A';
+            }
+
+            document.getElementById('routeDetails').style.display = 'block';
+            
+            updateProgress(100);
+            showLoading(false);
+            showSuccess(`Found closest location! ${closest.name} is ${closest.distance.toFixed(1)} miles away.`);
+            
+            document.getElementById('routesAnalyzed').textContent = parseInt(document.getElementById('routesAnalyzed').textContent) + 1;
+        }
+
+        // ============================================
+        // AI CALCULATION
+        // ============================================
+        
+        async function calculateAIRate() {
+            if (!routeData) {
+                showAlert('error', 'Please find closest locations first!');
+                return;
+            }
+
+            const distance = parseFloat(document.getElementById('distance').value);
+            const driveTime = parseFloat(document.getElementById('driveTime').value);
+            const roadConditions = document.getElementById('roadConditions').value;
+            const material = document.getElementById('material').value;
+            const volume = parseFloat(document.getElementById('volume').value);
+            const marketDemand = document.getElementById('marketDemand').value;
+            const fuelPrice = parseFloat(document.getElementById('fuelPrice').value);
+            const competition = document.getElementById('competition').value;
+
+            if (!distance || !driveTime || !volume || !fuelPrice) {
+                showAlert('error', 'Please fill in all required fields');
+                return;
+            }
+
+            showLoading(true, 'AI is analyzing pricing strategy...');
+            updateProgress(20);
+
+            const btn = document.getElementById('calculateBtn');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 2500,
+                        messages: [{
+                            role: "user",
+                            content: `You are a pricing expert for Silvi Materials, a construction materials company. Analyze this haul and provide intelligent pricing.
+
+VERIFIED ROUTE DATA:
+- Distance: ${distance} miles (GPS-verified)
+- Drive Time: ${driveTime} minutes (real-time)
+- Road Conditions: ${roadConditions}
+
+MARKET FACTORS:
+- Material: ${material}
+- Monthly Volume: ${volume} tons
+- Market Demand: ${marketDemand}
+- Current Fuel: $${fuelPrice}/gallon
+- Competition: ${competition}
+
+CALCULATE professional haul rate considering:
+
+1. FUEL COSTS:
+   - Loaded truck: 6 MPG
+   - Empty return: 8 MPG
+   - Total fuel cost per trip
+
+2. LABOR COSTS:
+   - Driver wage: $35/hour (including benefits)
+   - Load/unload time: 30 min
+   - Drive time: ${driveTime} min
+
+3. VEHICLE COSTS:
+   - Depreciation: $0.15/mile
+   - Maintenance: $0.20/mile
+   - Road condition multiplier
+
+4. VOLUME DISCOUNTS:
+   - <500 tons: base rate
+   - 500-1000 tons: 5% discount
+   - >1000 tons: 8% discount
+
+5. MARKET ADJUSTMENTS:
+   - High demand: +15%
+   - Normal: 0%
+   - Low demand: -10%
+
+6. COMPETITIVE STRATEGY:
+   - High competition: aggressive (5-10% below market)
+   - Medium: match market
+   - Low: premium (5-8% above)
+
+Return ONLY valid JSON (no markdown, no backticks):
+{
+  "haulRate": <final rate per ton>,
+  "baseRate": <base calculation>,
+  "fuelCost": <fuel per ton>,
+  "laborCost": <labor per ton>,
+  "maintenanceCost": <maintenance per ton>,
+  "marketAdjustment": <market modifier>,
+  "volumeDiscount": <volume discount>,
+  "explanation": "<detailed 3-4 sentence strategic analysis>",
+  "confidenceLevel": "high/medium/low",
+  "priceRange": {"low": <min>, "high": <max>},
+  "profitMargin": <percentage>,
+  "competitiveAdvice": "<specific positioning advice>"
+}`
+                        }]
+                    })
+                });
+
+                updateProgress(60);
+
+                if (!response.ok) {
+                    throw new Error(`API failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                let text = data.content[0].text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+                const result = JSON.parse(text);
+
+                updateProgress(90);
+                displayResults(result, volume);
+                updateProgress(100);
+                showLoading(false);
+                showSuccess('AI analysis complete!');
+
+            } catch (error) {
+                console.error('AI Error:', error);
+                showLoading(false);
+                showAlert('error', 'AI calculation failed. Please try again.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // RESULTS DISPLAY
+        // ============================================
+        
+        function displayResults(result, volume) {
+            document.getElementById('rateValue').textContent = `$${result.haulRate.toFixed(2)}`;
+
+            document.getElementById('factorGrid').innerHTML = `
+                <div class="factor-card">
+                    <i class="fas fa-dollar-sign"></i>
+                    <div class="factor-label">Base Rate</div>
+                    <div class="factor-value">$${result.baseRate.toFixed(2)}</div>
+                </div>
+                <div class="factor-card">
+                    <i class="fas fa-gas-pump"></i>
+                    <div class="factor-label">Fuel</div>
+                    <div class="factor-value">$${result.fuelCost.toFixed(2)}</div>
+                </div>
+                <div class="factor-card">
+                    <i class="fas fa-user-tie"></i>
+                    <div class="factor-label">Labor</div>
+                    <div class="factor-value">$${result.laborCost.toFixed(2)}</div>
+                </div>
+                <div class="factor-card">
+                    <i class="fas fa-wrench"></i>
+                    <div class="factor-label">Maintenance</div>
+                    <div class="factor-value">$${result.maintenanceCost.toFixed(2)}</div>
+                </div>
+                <div class="factor-card">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="factor-label">Market Adj</div>
+                    <div class="factor-value">${result.marketAdjustment >= 0 ? '+' : ''}$${result.marketAdjustment.toFixed(2)}</div>
+                </div>
+                <div class="factor-card">
+                    <i class="fas fa-percent"></i>
+                    <div class="factor-label">Volume Disc</div>
+                    <div class="factor-value">$${result.volumeDiscount.toFixed(2)}</div>
+                </div>
+            `;
+
+            const monthlyRevenue = (result.haulRate * volume).toLocaleString('en-US', {maximumFractionDigits: 0});
+
+            document.getElementById('explanation').innerHTML = `
+                <p style="margin-bottom: 1.5rem;">${result.explanation}</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding: 1.5rem; background: rgba(37, 99, 235, 0.05); border-radius: 10px; margin-top: 1.5rem;">
+                    <div>
+                        <div style="color: var(--gray); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">Confidence</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">${result.confidenceLevel}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--gray); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">Price Range</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--dark);">$${result.priceRange.low.toFixed(2)} - $${result.priceRange.high.toFixed(2)}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--gray); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">Monthly Revenue</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--success);">$${monthlyRevenue}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--gray); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">Profit Margin</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--success);">${result.profitMargin.toFixed(1)}%</div>
+                    </div>
+                </div>
+                ${result.competitiveAdvice ? `
+                <div style="margin-top: 1.5rem; padding: 1.5rem; background: #fef3c7; border-radius: 10px; border-left: 5px solid var(--warning);">
+                    <div style="font-weight: 700; color: #92400e; margin-bottom: 0.75rem;"><i class="fas fa-lightbulb"></i> Competitive Strategy</div>
+                    <div style="color: var(--dark);">${result.competitiveAdvice}</div>
+                </div>
+                ` : ''}
+            `;
+
+            // Comparison table
+            if (routeData && routeData.all) {
+                const top15 = routeData.all.slice(0, 15);
+                let tableHTML = `
+                    <h3 style="color: var(--primary); margin: 2rem 0 1rem; font-size: 1.4rem; font-weight: 700;">
+                        <i class="fas fa-trophy"></i> Top 15 Closest Competitors
+                    </h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Location</th>
+                                <th>State</th>
+                                <th>Distance</th>
+                                <th>Time</th>
+                                <th>Est. Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                top15.forEach((loc, i) => {
+                    const estRate = (loc.distance * 0.85).toFixed(2);
+                    const rowClass = loc.silvi ? ' class="highlight"' : '';
+                    tableHTML += `
+                        <tr${rowClass}>
+                            <td><strong>${i + 1}</strong></td>
+                            <td>${loc.silvi ? '⭐ ' : ''}${loc.name}</td>
+                            <td><strong>${loc.state}</strong></td>
+                            <td>${loc.distance.toFixed(1)} mi</td>
+                            <td>${Math.round(loc.duration)} min</td>
+                            <td>~$${estRate}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                    <p style="color: var(--gray); margin-top: 1rem; font-style: italic;">
+                        <i class="fas fa-info-circle"></i> Competitor rates estimated at $0.85/mile. Your AI rate: <strong>$${result.haulRate.toFixed(2)}/ton</strong>
+                    </p>
+                `;
+
+                document.getElementById('comparisonSection').innerHTML = tableHTML;
+            }
+
+            document.getElementById('resultsSection').classList.add('show');
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        
+        function showLoading(show, text = 'Processing...') {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.toggle('show', show);
+            if (text) {
+                document.getElementById('loadingText').textContent = text;
+            }
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function showAlert(type, message) {
+            hideAllAlerts();
+            const alert = document.getElementById(type + 'Alert');
+            const textEl = document.getElementById(type + 'Text');
+            textEl.textContent = message;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function showInfo(msg) { showAlert('info', msg); }
+        function showSuccess(msg) { showAlert('success', msg); }
+        function hideAllAlerts() {
+            document.querySelectorAll('.alert').forEach(a => a.classList.remove('show'));
+        }
+
+        function clearMapLayers() {
+            markers.forEach(m => map.removeLayer(m));
+            polylines.forEach(p => map.removeLayer(p));
+            markers = [];
+            polylines = [];
+        }
+
+        // ============================================
+        // START APPLICATION
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>

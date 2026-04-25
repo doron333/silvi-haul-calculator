@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silvi Haul Rate Calculator Pro - AI Powered</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light: #f9fafb;
+            --purple: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .logo { font-size: 3.5rem; margin-bottom: 1rem; }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--gray);
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .pro-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .ai-features {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-badge {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid var(--light);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-title i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-title h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .ai-chip {
+            background: linear-gradient(135deg, var(--purple), #a78bfa);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse-ai 2s infinite;
+        }
+
+        @keyframes pulse-ai {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input:disabled {
+            background: var(--light);
+            cursor: not-allowed;
+        }
+
+        .live-data-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, var(--purple), #a78bfa);
+        }
+
+        .btn-ai:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7c3aed, var(--purple));
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            margin: 2rem 0;
+        }
+
+        .results {
+            display: none;
+            animation: fadeInUp 0.5s;
+        }
+
+        .results.show { display: block; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rate-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .rate-amount {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 1rem 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric {
+            background: white;
+            padding: 1.75rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+
+        .metric:hover { transform: translateY(-5px); }
+
+        .metric i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .metric-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-insights {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid var(--warning);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .ai-insights h3 {
+            color: var(--warning);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-top: 2rem;
+        }
+
+        th, td {
+            padding: 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        tr:hover { background: rgba(37, 99, 235, 0.05); }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .loading-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 8px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+        }
+
+        .alert.show { display: flex; }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+        .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .input-grid { grid-template-columns: 1fr; }
+            .rate-amount { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏔️</div>
+            <h1>Silvi Haul Rate Calculator</h1>
+            <p class="tagline">AI-Powered with Live Fuel Prices</p>
+            <div class="pro-badge">PRO WEB EDITION</div>
+            
+            <div class="ai-features">
+                <div class="feature-badge">
+                    <i class="fas fa-brain"></i>
+                    AI-Powered Analysis
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-gas-pump"></i>
+                    Live Fuel Prices
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-route"></i>
+                    GPS Routing
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-chart-line"></i>
+                    70+ Locations
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h2>Job Site Location</h2>
+                </div>
+                <div class="ai-chip">
+                    <i class="fas fa-robot"></i>
+                    AI READY
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Job Site Address</label>
+                    <input type="text" id="jobAddress" placeholder="Enter full address (e.g., 100 Market St, Philadelphia, PA 19103)">
+                </div>
+            </div>
+
+            <button class="btn btn-large" onclick="findClosest()">
+                <i class="fas fa-search-location"></i>
+                Find Closest Quarry with AI
+            </button>
+
+            <div class="alert alert-error" id="errorAlert"></div>
+            <div class="alert alert-success" id="successAlert"></div>
+            <div class="alert alert-info" id="infoAlert"></div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="card" id="configCard" style="display: none;">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-cogs"></i>
+                    <h2>Configuration</h2>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Distance (miles)</label>
+                    <input type="number" id="distance" disabled step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Drive Time (minutes)</label>
+                    <input type="number" id="driveTime" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Material Type</label>
+                    <select id="material">
+                        <option value="aggregate">Aggregate/Gravel</option>
+                        <option value="sand">Sand</option>
+                        <option value="stone">Crushed Stone</option>
+                        <option value="cement">Cement</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Monthly Volume (tons)</label>
+                    <input type="number" id="volume" value="1000" min="100">
+                </div>
+                <div class="input-group">
+                    <label>Truck Capacity (tons)</label>
+                    <input type="number" id="truckCapacity" value="20" min="10" max="30">
+                </div>
+                <div class="input-group">
+                    <label>
+                        Fuel Price ($/gallon)
+                        <span class="live-data-badge" id="fuelBadge" style="display: none;">
+                            <i class="fas fa-bolt"></i> LIVE
+                        </span>
+                    </label>
+                    <input type="number" id="fuelPrice" value="3.50" step="0.01">
+                    <small id="fuelSource" style="display: none; color: var(--success); margin-top: 0.5rem; display: block; font-weight: 600;"></small>
+                </div>
+                <div class="input-group">
+                    <label>Driver Wage ($/hour)</label>
+                    <input type="number" id="driverWage" value="35">
+                </div>
+                <div class="input-group">
+                    <label>Market Demand</label>
+                    <select id="demand">
+                        <option value="high">High Demand</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="low">Low Demand</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-ai btn-large" onclick="calculateAIRate()">
+                <i class="fas fa-brain"></i>
+                Calculate with AI
+            </button>
+        </div>
+
+        <div id="resultsCard" class="card results">
+            <div class="rate-hero">
+                <h3 style="font-size: 1.5rem; opacity: 0.95;">AI-Calculated Haul Rate</h3>
+                <div class="rate-amount" id="rateValue">$0.00</div>
+                <div style="font-size: 1.25rem; opacity: 0.9;">per ton</div>
+            </div>
+
+            <div class="metrics" id="breakdown"></div>
+
+            <div class="ai-insights" id="aiInsights"></div>
+
+            <div id="comparisonSection"></div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">Processing...</div>
+            <div style="color: var(--gray);" id="loadingText">Please wait</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app-complete.js"></script>
+</body>
+</html>

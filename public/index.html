@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silvi Haul Rate Calculator Pro - AI Powered</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light: #f9fafb;
+            --purple: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .logo { font-size: 3.5rem; margin-bottom: 1rem; }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: var(--gray);
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .pro-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .ai-features {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-badge {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid var(--light);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-title i {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-title h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input:disabled {
+            background: var(--light);
+            cursor: not-allowed;
+        }
+
+        .live-data-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, var(--purple), #a78bfa);
+        }
+
+        .btn-ai:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7c3aed, var(--purple));
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            margin: 2rem 0;
+        }
+
+        .results {
+            display: none;
+            animation: fadeInUp 0.5s;
+        }
+
+        .results.show { display: block; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rate-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .rate-amount {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 1rem 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric {
+            background: white;
+            padding: 1.75rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+            border: 2px solid var(--light);
+        }
+
+        .metric:hover { transform: translateY(-5px); }
+
+        .metric i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .metric-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-insights {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid var(--warning);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .ai-insights h3 {
+            color: #92400e;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .ai-insights p {
+            color: #78350f;
+            line-height: 1.7;
+            margin-bottom: 0.75rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .loading-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 8px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+        }
+
+        .alert.show { display: flex; }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .input-grid { grid-template-columns: 1fr; }
+            .rate-amount { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏔️</div>
+            <h1>Silvi Haul Rate Calculator</h1>
+            <p class="tagline">Professional Haul Rate Calculator with Live Data</p>
+            <div class="pro-badge">WEB EDITION</div>
+            
+            <div class="ai-features">
+                <div class="feature-badge">
+                    <i class="fas fa-calculator"></i>
+                    Smart Calculations
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-gas-pump"></i>
+                    Live Fuel Prices
+                </div>
+                <div class="feature-badge" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                    <i class="fas fa-truck"></i>
+                    Valhalla Truck Routing
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-map-marked-alt"></i>
+                    70+ Locations
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h2>Job Site Location</h2>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Job Site Address</label>
+                    <input type="text" id="jobAddress" placeholder="Enter full address (e.g., 100 Market St, Philadelphia, PA 19103)">
+                </div>
+            </div>
+
+            <button class="btn btn-large" onclick="findClosest()">
+                <i class="fas fa-search-location"></i>
+                Find Closest Quarry & Calculate Rate
+            </button>
+
+            <div class="alert alert-error" id="errorAlert"></div>
+            <div class="alert alert-success" id="successAlert"></div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="card" id="configCard" style="display: none;">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-cogs"></i>
+                    <h2>Configuration</h2>
+                </div>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Distance (miles)</label>
+                    <input type="number" id="distance" disabled step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Drive Time (minutes)</label>
+                    <input type="number" id="driveTime" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Material Type</label>
+                    <select id="material">
+                        <option value="aggregate">Aggregate/Gravel</option>
+                        <option value="sand">Sand</option>
+                        <option value="stone">Crushed Stone</option>
+                        <option value="cement">Cement</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>
+                        Truck Type
+                        <span class="live-data-badge" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                            <i class="fas fa-truck"></i> TRUCK ROUTING
+                        </span>
+                    </label>
+                    <select id="truckType">
+                        <option value="tandem">Tandem Axle (2 axles - 25 tons, 13')</option>
+                        <option value="triaxle" selected>Tri-Axle (3 axles - 36 tons, 13')</option>
+                        <option value="quad">Quad Axle (4 axles - 44 tons, 13')</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Monthly Volume (tons)</label>
+                    <input type="number" id="volume" value="1000" min="100">
+                </div>
+                <div class="input-group">
+                    <label>Truck Capacity (tons)</label>
+                    <input type="number" id="truckCapacity" value="20" min="10" max="30">
+                </div>
+                <div class="input-group">
+                    <label>
+                        Fuel Price ($/gallon)
+                        <span class="live-data-badge" id="fuelBadge" style="display: none;">
+                            <i class="fas fa-bolt"></i> LIVE
+                        </span>
+                    </label>
+                    <input type="number" id="fuelPrice" value="3.50" step="0.01">
+                    <small id="fuelSource" style="display: none; color: var(--success); margin-top: 0.5rem; font-weight: 600;"></small>
+                </div>
+                <div class="input-group">
+                    <label>Driver Wage ($/hour)</label>
+                    <input type="number" id="driverWage" value="35">
+                </div>
+                <div class="input-group">
+                    <label>Market Demand</label>
+                    <select id="demand">
+                        <option value="high">High Demand</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="low">Low Demand</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>
+                        Toll Preference
+                        <span class="live-data-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-dollar-sign"></i> AUTO-CALC
+                        </span>
+                    </label>
+                    <select id="avoidTolls">
+                        <option value="false">Use Tolls (Faster, costs extra)</option>
+                        <option value="true">Avoid Tolls (Slower, saves money)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-large" onclick="calculateRate()" style="margin-bottom: 1rem;">
+                <i class="fas fa-calculator"></i>
+                Calculate Haul Rate (Standard)
+            </button>
+
+            <button class="btn btn-ai btn-large" onclick="calculateWithAI()">
+                <i class="fas fa-robot"></i>
+                Calculate with AI (Requires Server)
+            </button>
+        </div>
+
+        <div id="resultsCard" class="card results">
+            <div class="rate-hero">
+                <h3 style="font-size: 1.5rem; opacity: 0.95;">Recommended Haul Rate</h3>
+                <div class="rate-amount" id="rateValue">$0.00</div>
+                <div style="font-size: 1.25rem; opacity: 0.9;">per ton</div>
+            </div>
+
+            <div class="metrics" id="breakdown"></div>
+
+            <div class="ai-insights" id="insights"></div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">Processing...</div>
+            <div style="color: var(--gray);" id="loadingText">Please wait</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Quarry locations database
+        const LOCATIONS = [
+            { name: "Silvi Materials - Temple HQ", address: "4101 N 5th St Hwy, Temple, PA 19560", lat: 40.4091, lng: -75.9177, material: "aggregate, sand, stone", isSilvi: true, state: "PA" },
+            { name: "Silvi Materials - Fairless Hills", address: "751 Big Oak Rd, Fairless Hills, PA 19030", lat: 40.1823, lng: -74.8394, material: "aggregate, stone", isSilvi: true, state: "PA" },
+            { name: "Silvi Materials - Belle Mead", address: "1220 US Highway 206, Hillsborough, NJ 08844", lat: 40.4721, lng: -74.6632, material: "aggregate, sand", isSilvi: true, state: "NJ" },
+            { name: "Braen Stone - Haledon Quarry", address: "500 Belmont Ave, Haledon, NJ 07508", lat: 40.9420, lng: -74.1893, material: "stone, aggregate", state: "NJ" },
+            { name: "Braen Stone - Franklin", address: "110 Rte 23 South, Franklin, NJ 07416", lat: 41.0954, lng: -74.5754, material: "stone, aggregate", state: "NJ" },
+            { name: "Tilcon - Oxford", address: "130 Changebridge Rd, Montville, NJ 07045", lat: 40.8945, lng: -74.3654, material: "stone, aggregate", state: "NJ" },
+            { name: "Eureka Stone - Chalfont HQ", address: "4001 Horseshoe Pike, Honey Brook, PA 19344", lat: 40.0987, lng: -75.7654, material: "stone, aggregate", state: "PA" },
+            { name: "Pennsy Supply - Silver Spring", address: "200 Rosedale Ave, Camp Hill, PA 17011", lat: 40.2398, lng: -76.9276, material: "aggregate, sand, stone", state: "PA" },
+            { name: "Hanson - Nazareth Cement", address: "Nazareth Cement Plant, Nazareth, PA 18064", lat: 40.7443, lng: -75.3065, material: "cement", state: "PA" },
+        ];
+
+        let map, jobMarker, quarryMarker, routeLine;
+        let currentDistance = 0, currentDuration = 0;
+        let jobCoords = null, quarryCoords = null;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([40.2732, -74.9127], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        initMap();
+
+        // Geocode address
+        async function geocodeAddress(address) {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            }
+            throw new Error('Address not found');
+        }
+
+        // Calculate distance between two points
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 3959; // Earth's radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Find closest quarry
+        async function findClosest() {
+            const address = document.getElementById('jobAddress').value.trim();
+            if (!address) {
+                showAlert('error', 'Please enter a job site address');
+                return;
+            }
+
+            showLoading('Geocoding address...');
+            
+            try {
+                jobCoords = await geocodeAddress(address);
+                
+                showLoading('Finding closest quarry...');
+                
+                let closest = null;
+                let minDistance = Infinity;
+                
+                for (const location of LOCATIONS) {
+                    const dist = calculateDistance(jobCoords.lat, jobCoords.lng, location.lat, location.lng);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closest = location;
+                    }
+                }
+                
+                if (!closest) {
+                    throw new Error('No quarries found');
+                }
+                
+                quarryCoords = { lat: closest.lat, lng: closest.lng };
+                
+                showLoading('Calculating route...');
+                await calculateRoute(jobCoords, quarryCoords);
+                
+                // Fetch live fuel prices
+                showLoading('Fetching live fuel prices...');
+                const state = extractState(address) || 'US';
+                await fetchFuelPrices(state);
+                
+                // Update map
+                if (jobMarker) map.removeLayer(jobMarker);
+                if (quarryMarker) map.removeLayer(quarryMarker);
+                if (routeLine) map.removeLayer(routeLine);
+                
+                jobMarker = L.marker([jobCoords.lat, jobCoords.lng], {
+                    icon: L.divIcon({ className: 'custom-marker', html: '📍', iconSize: [30, 30] })
+                }).addTo(map).bindPopup(`<b>Job Site</b><br>${address}`);
+                
+                quarryMarker = L.marker([quarryCoords.lat, quarryCoords.lng], {
+                    icon: L.divIcon({ className: 'custom-marker', html: '🏔️', iconSize: [30, 30] })
+                }).addTo(map).bindPopup(`<b>${closest.name}</b><br>${closest.address}`);
+                
+                map.fitBounds([[jobCoords.lat, jobCoords.lng], [quarryCoords.lat, quarryCoords.lng]], { padding: [50, 50] });
+                
+                document.getElementById('distance').value = currentDistance.toFixed(1);
+                document.getElementById('driveTime').value = Math.round(currentDuration);
+                document.getElementById('configCard').style.display = 'block';
+                
+                hideLoading();
+                showAlert('success', `Found: ${closest.name} - ${currentDistance.toFixed(1)} miles away`);
+                
+            } catch (error) {
+                hideLoading();
+                showAlert('error', `Error: ${error.message}`);
+            }
+        }
+
+        // Calculate route with Valhalla Truck Routing
+        async function calculateRoute(from, to) {
+            const truckType = document.getElementById('truckType')?.value || 'triaxle';
+            const avoidTolls = document.getElementById('avoidTolls')?.value === 'true';
+            
+            showLoading(`Calculating ${avoidTolls ? 'toll-free ' : ''}truck-legal route...`);
+            
+            try {
+                const response = await fetch('/api/valhalla-truck-route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: { lat: from.lat, lng: from.lng },
+                        to: { lat: to.lat, lng: to.lng },
+                        truckType: truckType,
+                        avoidTolls: avoidTolls
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentDistance = result.data.distance;
+                    currentDuration = result.data.duration;
+                    
+                    // Store toll information globally
+                    window.currentTollCost = result.data.estimatedTollCost || 0;
+                    window.hasTolls = result.data.hasTolls || false;
+                    
+                    // Build success message
+                    let message = `Route calculated using ${result.data.routingEngine}\n`;
+                    message += `Distance: ${currentDistance.toFixed(1)} miles\n`;
+                    message += `Time: ${Math.round(currentDuration)} minutes\n`;
+                    message += `Truck: ${result.data.truckType}`;
+                    
+                    // Add toll information
+                    if (result.data.hasTolls && !avoidTolls) {
+                        message += `\n💰 Estimated tolls: $${result.data.estimatedTollCost.toFixed(2)} (round trip)`;
+                        message += `\n📍 Toll plazas: ${result.data.tollBooths}`;
+                    } else if (avoidTolls && result.data.avoidedTolls) {
+                        message += `\n✅ Toll-free route`;
+                    }
+                    
+                    // Show warnings if any
+                    if (result.data.warnings && result.data.warnings.length > 0) {
+                        message += `\n\n⚠️ ${result.data.warnings.join('\n')}`;
+                    }
+                    
+                    // Display routing engine used
+                    const engineBadge = result.data.routingEngine.includes('Valhalla') 
+                        ? '✅ Truck-Legal Route' 
+                        : '⚠️ Basic Route (Not truck-aware)';
+                    
+                    document.getElementById('successAlert').innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        ${engineBadge}<br>
+                        Distance: ${currentDistance.toFixed(1)} miles<br>
+                        Time: ${Math.round(currentDuration)} minutes<br>
+                        Truck: ${result.data.truckType}
+                        ${result.data.hasTolls && !avoidTolls ? `<br>💰 Tolls: $${result.data.estimatedTollCost.toFixed(2)}` : ''}
+                        ${avoidTolls ? '<br>✅ Toll-free route' : ''}
+                    `;
+                    
+                    return;
+                }
+            } catch (error) {
+                console.error('Valhalla routing failed, using basic routing:', error);
+            }
+            
+            // Fallback to basic OSRM routing
+            showLoading('Using basic routing (not truck-aware)...');
+            const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.routes && data.routes.length > 0) {
+                const route = data.routes[0];
+                currentDistance = route.distance / 1609.34; // Convert to miles
+                currentDuration = route.duration / 60; // Convert to minutes
+                window.currentTollCost = 0;
+                window.hasTolls = false;
+                
+                const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                routeLine = L.polyline(coordinates, { color: '#f59e0b', weight: 4 }).addTo(map);
+                
+                showAlert('success', '⚠️ Using basic routing - truck restrictions & tolls NOT considered');
+            }
+        }
+
+        // Extract state from address
+        function extractState(address) {
+            const stateMatch = address.match(/\b([A-Z]{2})\b/);
+            return stateMatch ? stateMatch[1] : null;
+        }
+
+        // Fetch live fuel prices from EIA via backend
+        async function fetchFuelPrices(state) {
+            try {
+                const response = await fetch(`/api/fuel-prices/${state}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const fuelPrice = result.data.gasoline;
+                    document.getElementById('fuelPrice').value = fuelPrice.toFixed(2);
+                    document.getElementById('fuelBadge').style.display = 'inline-flex';
+                    document.getElementById('fuelSource').style.display = 'block';
+                    document.getElementById('fuelSource').textContent = `✅ ${result.data.source} - ${state} fuel data (${result.data.lastUpdate})`;
+                }
+            } catch (error) {
+                console.error('Fuel price fetch error:', error);
+                // Use default if API unavailable
+                document.getElementById('fuelPrice').value = '3.50';
+            }
+        }
+
+        // Calculate haul rate
+        function calculateRate() {
+            const distance = parseFloat(document.getElementById('distance').value);
+            const fuelPrice = parseFloat(document.getElementById('fuelPrice').value);
+            const driverWage = parseFloat(document.getElementById('driverWage').value);
+            const truckCapacity = parseFloat(document.getElementById('truckCapacity').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const driveTime = parseFloat(document.getElementById('driveTime').value);
+            const demand = document.getElementById('demand').value;
+            
+            // Get toll cost from routing
+            const tollCost = window.currentTollCost || 0;
+            
+            // Calculate costs
+            const roundTripDistance = distance * 2;
+            const loadedMPG = 6;
+            const emptyMPG = 8;
+            const fuelCost = (distance / loadedMPG + distance / emptyMPG) * fuelPrice;
+            
+            const totalTime = (driveTime * 2 + 30) / 60; // Include 30 min load/unload
+            const laborCost = totalTime * (driverWage * 1.4); // 40% benefits
+            
+            const depreciationPerMile = 0.15;
+            const maintenancePerMile = 0.20;
+            const insurancePerMile = 0.05;
+            const fixedCosts = roundTripDistance * (depreciationPerMile + maintenancePerMile + insurancePerMile);
+            
+            // Add toll costs to trip expenses
+            const totalCost = fuelCost + laborCost + fixedCosts + tollCost;
+            const costPerTon = totalCost / truckCapacity;
+            
+            // Volume discount
+            let volumeDiscount = 0;
+            if (volume >= 1000) volumeDiscount = 0.08;
+            else if (volume >= 500) volumeDiscount = 0.05;
+            
+            // Market adjustment
+            let marketAdjustment = 0;
+            if (demand === 'high') marketAdjustment = 0.15;
+            else if (demand === 'low') marketAdjustment = -0.10;
+            
+            const baseRate = costPerTon * 1.25; // 25% margin
+            const adjustedRate = baseRate * (1 + marketAdjustment) * (1 - volumeDiscount);
+            
+            // Display results
+            document.getElementById('rateValue').textContent = `$${adjustedRate.toFixed(2)}`;
+            
+            const breakdown = `
+                <div class="metric">
+                    <i class="fas fa-gas-pump"></i>
+                    <div class="metric-label">Fuel Cost</div>
+                    <div class="metric-value">$${fuelCost.toFixed(2)}</div>
+                </div>
+                <div class="metric">
+                    <i class="fas fa-user-tie"></i>
+                    <div class="metric-label">Labor Cost</div>
+                    <div class="metric-value">$${laborCost.toFixed(2)}</div>
+                </div>
+                <div class="metric">
+                    <i class="fas fa-tools"></i>
+                    <div class="metric-label">Fixed Costs</div>
+                    <div class="metric-value">$${fixedCosts.toFixed(2)}</div>
+                </div>
+                ${tollCost > 0 ? `
+                <div class="metric">
+                    <i class="fas fa-dollar-sign"></i>
+                    <div class="metric-label">Toll Costs</div>
+                    <div class="metric-value">$${tollCost.toFixed(2)}</div>
+                </div>
+                ` : ''}
+                <div class="metric">
+                    <i class="fas fa-truck"></i>
+                    <div class="metric-label">Cost Per Ton</div>
+                    <div class="metric-value">$${costPerTon.toFixed(2)}</div>
+                </div>
+            `;
+            document.getElementById('breakdown').innerHTML = breakdown;
+            
+            const insights = `
+                <h3><i class="fas fa-lightbulb"></i> Rate Analysis</h3>
+                <p><strong>Base Rate:</strong> $${baseRate.toFixed(2)}/ton with 25% profit margin</p>
+                <p><strong>Market Adjustment:</strong> ${marketAdjustment > 0 ? '+' : ''}${(marketAdjustment * 100).toFixed(0)}% for ${demand} demand conditions</p>
+                <p><strong>Volume Discount:</strong> ${(volumeDiscount * 100).toFixed(0)}% off for ${volume} tons/month</p>
+                <p><strong>Trip Economics:</strong> ${roundTripDistance.toFixed(1)} miles round trip, ${totalTime.toFixed(1)} hours total time</p>
+                ${tollCost > 0 ? `<p><strong>Toll Costs:</strong> $${tollCost.toFixed(2)} included in rate (${window.hasTolls ? 'using tolls' : 'toll-free route'})</p>` : ''}
+                <p><strong>Recommendation:</strong> Quote between $${(adjustedRate * 0.95).toFixed(2)} - $${(adjustedRate * 1.05).toFixed(2)} per ton depending on relationship and urgency</p>
+            `;
+            document.getElementById('insights').innerHTML = insights;
+            
+            document.getElementById('resultsCard').classList.add('show');
+            document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Calculate with AI (optional - requires backend server)
+        async function calculateWithAI() {
+            const distance = parseFloat(document.getElementById('distance').value);
+            const fuelPrice = parseFloat(document.getElementById('fuelPrice').value);
+            const driverWage = parseFloat(document.getElementById('driverWage').value);
+            const truckCapacity = parseFloat(document.getElementById('truckCapacity').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const demand = document.getElementById('demand').value;
+            const material = document.getElementById('material').value;
+
+            showLoading('Calculating with AI...');
+
+            try {
+                const response = await fetch('/api/calculate-ai-rate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        distance,
+                        fuelPrice,
+                        driverWage,
+                        truckCapacity,
+                        volume,
+                        demand,
+                        material
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    
+                    document.getElementById('rateValue').textContent = `$${data.haulRate.toFixed(2)}`;
+                    
+                    const breakdown = `
+                        <div class="metric">
+                            <i class="fas fa-gas-pump"></i>
+                            <div class="metric-label">Fuel Cost</div>
+                            <div class="metric-value">$${data.breakdown.fuelCost.toFixed(2)}</div>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-user-tie"></i>
+                            <div class="metric-label">Labor Cost</div>
+                            <div class="metric-value">$${data.breakdown.laborCost.toFixed(2)}</div>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-tools"></i>
+                            <div class="metric-label">Fixed Costs</div>
+                            <div class="metric-value">$${data.breakdown.fixedCosts.toFixed(2)}</div>
+                        </div>
+                        <div class="metric">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="metric-label">Profit Margin</div>
+                            <div class="metric-value">${(data.margin * 100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                    document.getElementById('breakdown').innerHTML = breakdown;
+                    
+                    const insights = `
+                        <h3><i class="fas fa-robot"></i> AI-Powered Insights</h3>
+                        <p><strong>Recommended Rate:</strong> $${data.haulRate.toFixed(2)}/ton</p>
+                        <p><strong>Competitive Range:</strong> $${data.priceRange.low.toFixed(2)} - $${data.priceRange.high.toFixed(2)}/ton</p>
+                        ${data.insights.map(insight => `<p>• ${insight}</p>`).join('')}
+                        <p><strong>Recommendation:</strong> ${data.recommendation}</p>
+                    `;
+                    document.getElementById('insights').innerHTML = insights;
+                    
+                    document.getElementById('resultsCard').classList.add('show');
+                    document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    hideLoading();
+                } else {
+                    throw new Error(result.error || 'AI calculation failed');
+                }
+            } catch (error) {
+                hideLoading();
+                showAlert('error', `AI calculation unavailable. Using standard calculation. (${error.message})`);
+                // Fallback to standard calculation
+                calculateRate();
+            }
+        }
+
+        // Alert helpers
+        function showAlert(type, message) {
+            const alert = document.getElementById(type === 'error' ? 'errorAlert' : 'successAlert');
+            alert.textContent = message;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

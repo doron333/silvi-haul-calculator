@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silvi Materials - Professional Competitor Analysis Platform</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+        
+        header {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-large {
+            width: 100%;
+            justify-content: center;
+            padding: 1.25rem;
+            font-size: 1.15rem;
+        }
+
+        #map {
+            height: 600px;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .results {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .results.show { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rate-display {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .rate-value {
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 1rem 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .metric-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .metric-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+        }
+
+        tr:hover {
+            background: rgba(30, 64, 175, 0.05);
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading.show { display: flex; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.75rem; }
+            .input-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-mountain"></i> Silvi Materials</h1>
+            <div class="subtitle">Professional Competitor Analysis & AI-Powered Haul Rate Calculator</div>
+        </header>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Step 1: Enter Job Site Location
+            </div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Job Site Address</label>
+                    <input type="text" id="jobAddress" placeholder="e.g., 100 Main Street, Philadelphia, PA 19103">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button class="btn" onclick="findClosest()">
+                        <i class="fas fa-search"></i> Find Closest Locations
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert"></div>
+            <div class="alert alert-success" id="successAlert"></div>
+        </div>
+
+        <div id="routeInfo" style="display:none;">
+            <div class="card">
+                <div class="section-title">
+                    <i class="fas fa-trophy"></i>
+                    Closest Location
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <i class="fas fa-building"></i>
+                        <div class="metric-label">Location</div>
+                        <div class="metric-value" id="closestName"></div>
+                    </div>
+                    <div class="metric-card">
+                        <i class="fas fa-road"></i>
+                        <div class="metric-label">Distance</div>
+                        <div class="metric-value" id="closestDist"></div>
+                    </div>
+                    <div class="metric-card">
+                        <i class="fas fa-clock"></i>
+                        <div class="metric-label">Drive Time</div>
+                        <div class="metric-value" id="closestTime"></div>
+                    </div>
+                    <div class="metric-card">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="metric-label">Status</div>
+                        <div class="metric-value" id="closestStatus"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="fas fa-sliders-h"></i>
+                Step 2: Configure Haul Rate Parameters
+            </div>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Distance (miles)</label>
+                    <input type="number" id="distance" disabled step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>Drive Time (minutes)</label>
+                    <input type="number" id="driveTime" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Material Type</label>
+                    <select id="material">
+                        <option value="aggregate">Aggregate/Gravel</option>
+                        <option value="sand">Sand</option>
+                        <option value="stone">Crushed Stone</option>
+                        <option value="cement">Cement</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Monthly Volume (tons)</label>
+                    <input type="number" id="volume" value="1000" min="100">
+                </div>
+                <div class="input-group">
+                    <label>Truck Capacity (tons)</label>
+                    <input type="number" id="truckCapacity" value="20" min="10" max="30">
+                </div>
+                <div class="input-group">
+                    <label>Fuel Price ($/gallon)</label>
+                    <input type="number" id="fuelPrice" value="3.50" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>Driver Wage ($/hour)</label>
+                    <input type="number" id="driverWage" value="35" step="1">
+                </div>
+                <div class="input-group">
+                    <label>Market Demand</label>
+                    <select id="demand">
+                        <option value="high">High Demand</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="low">Low Demand</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-large" onclick="calculateRate()" id="calcBtn">
+                <i class="fas fa-calculator"></i> Calculate AI-Powered Haul Rate
+            </button>
+        </div>
+
+        <div id="map"></div>
+
+        <div id="results" class="results">
+            <div class="card">
+                <div class="rate-display">
+                    <div style="font-size: 1.25rem; opacity: 0.9;">Recommended Haul Rate</div>
+                    <div class="rate-value" id="rateValue">$0.00</div>
+                    <div>per ton</div>
+                </div>
+
+                <div class="metrics-grid" id="breakdown"></div>
+
+                <div id="analysis" style="background: #f8fafc; padding: 2rem; border-radius: 10px; margin-top: 2rem;"></div>
+
+                <div id="comparison"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div style="background: white; padding: 3rem; border-radius: 16px; text-align: center;">
+            <div class="spinner"></div>
+            <div style="margin-top: 1.5rem; color: var(--dark); font-weight: 600;">Processing...</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, markers = [], polylines = [], routeData = null;
+
+        const LOCATIONS = [
+            // SILVI LOCATIONS (4)
+            {name:"Silvi Materials - Temple HQ",addr:"4101 N 5th St Hwy, Temple, PA 19560",lat:40.4091,lng:-75.9177,type:["aggregate","stone"],state:"PA",silvi:true},
+            {name:"Silvi - Fairless Hills",addr:"550 S Olds Blvd, Fairless Hills, PA 19030",lat:40.1783,lng:-74.8564,type:["cement"],state:"PA",silvi:true},
+            {name:"Silvi - Belle Mead",addr:"500 Amwell Rd, Belle Mead, NJ 08502",lat:40.4635,lng:-74.6708,type:["stone"],state:"NJ",silvi:true},
+            {name:"Silvi - Gibraltar Rock",addr:"1200 Route 31, Flemington, NJ 08822",lat:40.4989,lng:-74.8623,type:["stone"],state:"NJ",silvi:true},
+            
+            // BRAEN STONE (NJ) - 5 locations
+            {name:"Braen Stone - Haledon",addr:"615 Oldham Rd, Haledon, NJ 07508",lat:40.9339,lng:-74.1868,type:["stone"],state:"NJ"},
+            {name:"Braen Stone - Franklin",addr:"23 Wawayanda Rd, Franklin, NJ 07416",lat:41.1089,lng:-74.5845,type:["stone"],state:"NJ"},
+            {name:"Braen Stone - Sparta",addr:"89 Edison Rd, Sparta, NJ 07871",lat:41.0178,lng:-74.6459,type:["stone"],state:"NJ"},
+            {name:"Braen Stone - Totowa",addr:"180 Browertown Rd, Little Falls, NJ 07424",lat:40.8845,lng:-74.2178,type:["stone"],state:"NJ"},
+            {name:"Braen Stone - Lawrenceville",addr:"1900 Brunswick Pike, Lawrenceville, NJ 08648",lat:40.2767,lng:-74.7234,type:["stone"],state:"NJ"},
+            
+            // WELDON MATERIALS (NJ) - 3 locations
+            {name:"Weldon - Watchung",addr:"100 Johnston Dr, Watchung, NJ 07069",lat:40.6401,lng:-74.4526,type:["stone"],state:"NJ"},
+            {name:"Weldon - Lake Hopatcong",addr:"181 NJ-181, Lake Hopatcong, NJ 07849",lat:40.9489,lng:-74.6593,type:["stone"],state:"NJ"},
+            {name:"Weldon - Lafayette",addr:"217 Limecrest Rd, Lafayette, NJ 07848",lat:41.0689,lng:-74.6923,type:["stone"],state:"NJ"},
+            
+            // TILCON/CRH (NJ/NY) - 6 locations
+            {name:"Tilcon NY - Mount Hope",addr:"1 Quarry Rd, Wharton, NJ 07885",lat:40.9012,lng:-74.5678,type:["stone"],state:"NJ"},
+            {name:"Tilcon NY - Pompton Lakes",addr:"160 Wanaque Ave, Pompton Lakes, NJ 07442",lat:41.0067,lng:-74.2945,type:["stone"],state:"NJ"},
+            {name:"Tilcon NY - Riverdale",addr:"125 Hamburg Turnpike, Riverdale, NJ 07457",lat:40.9978,lng:-74.2989,type:["stone"],state:"NJ"},
+            {name:"Tilcon NY - Newburgh",addr:"1300 Route 300, Newburgh, NY 12550",lat:41.5334,lng:-74.0789,type:["stone"],state:"NY"},
+            {name:"Tilcon NY - West Nyack",addr:"101 Corporate Dr, West Nyack, NY 10994",lat:41.0967,lng:-73.9723,type:["stone"],state:"NY"},
+            {name:"Tilcon NY - Clinton Point",addr:"Route 9W, Clinton Point, NY 12514",lat:41.9234,lng:-73.9567,type:["stone"],state:"NY"},
+            
+            // EUREKA STONE/JDM (PA) - 8 locations
+            {name:"Eureka Stone - Chalfont HQ",addr:"Lower State Rd, Chalfont, PA 18914",lat:40.2867,lng:-75.2089,type:["stone"],state:"PA"},
+            {name:"Eureka - Warminster",addr:"1200 Easton Rd, Warminster, PA 18974",lat:40.2123,lng:-75.0934,type:["stone"],state:"PA"},
+            {name:"Eureka - Telford",addr:"1850 Sumneytown Pike, Telford, PA 18969",lat:40.3456,lng:-75.3567,type:["stone"],state:"PA"},
+            {name:"Eureka - Feasterville",addr:"900 Bustleton Pike, Feasterville, PA 19053",lat:40.1456,lng:-75.0123,type:["stone"],state:"PA"},
+            {name:"Eureka - Perkasie",addr:"625 Constitution Ave, Perkasie, PA 18944",lat:40.3678,lng:-75.2934,type:["stone"],state:"PA"},
+            {name:"Eureka - Indian Valley",addr:"3050 Bergey Rd, Hatfield, PA 19440",lat:40.2867,lng:-75.3123,type:["stone"],state:"PA"},
+            {name:"Eureka - Montgomeryville",addr:"1340 Bethlehem Pike, Montgomeryville, PA 18936",lat:40.2534,lng:-75.2456,type:["stone"],state:"PA"},
+            {name:"Eureka - Hilltown",addr:"2100 Bethlehem Pike, Hilltown, PA 18927",lat:40.3234,lng:-75.2678,type:["stone"],state:"PA"},
+            
+            // PENNSY SUPPLY (PA) - 12 locations
+            {name:"Pennsy - Silver Spring",addr:"6470 Carlisle Pike, Silver Spring, PA 17110",lat:40.2456,lng:-77.0934,type:["stone"],state:"PA"},
+            {name:"Pennsy - Millard (Annville)",addr:"100 Quarry Rd, Annville, PA 17003",lat:40.3289,lng:-76.5123,type:["stone"],state:"PA"},
+            {name:"Pennsy - Gibraltar",addr:"3650 Trindle Rd, Camp Hill, PA 17011",lat:40.2234,lng:-76.9507,type:["stone"],state:"PA"},
+            {name:"Pennsy - Steelton",addr:"50 N Front St, Steelton, PA 17113",lat:40.2356,lng:-76.8089,type:["aggregate"],state:"PA"},
+            {name:"Pennsy - Mt Holly Springs",addr:"700 Mt Holly Rd, Mt Holly Springs, PA 17065",lat:40.1234,lng:-77.1856,type:["stone"],state:"PA"},
+            {name:"Pennsy - Fiddlers North",addr:"2100 N George St, York, PA 17404",lat:39.9823,lng:-76.7234,type:["stone"],state:"PA"},
+            {name:"Pennsy - Seven Valleys",addr:"450 Church Rd, Seven Valleys, PA 17360",lat:39.8645,lng:-76.7489,type:["stone"],state:"PA"},
+            {name:"Pennsy - Pleasant Gap",addr:"1650 Zion Rd, Pleasant Gap, PA 16823",lat:40.8756,lng:-77.7234,type:["stone"],state:"PA"},
+            {name:"Pennsy - Shartlesville",addr:"175 Mountain Rd, Shartlesville, PA 19554",lat:40.5234,lng:-76.1178,type:["stone"],state:"PA"},
+            {name:"Pennsy - Mt Holly (Cumberland)",addr:"150 Mt Holly Church Rd, Carlisle, PA 17015",lat:40.0934,lng:-77.2567,type:["sand"],state:"PA"},
+            {name:"Pennsy - Tarburton (DE)",addr:"1200 Wrangle Hill Rd, Bear, DE 19701",lat:39.6123,lng:-75.7234,type:["sand"],state:"DE"},
+            {name:"Pennsy - Bay Road (DE)",addr:"800 Bay Rd, Milford, DE 19963",lat:38.9456,lng:-75.4567,type:["sand"],state:"DE"},
+            
+            // HANSON/HEIDELBERG (PA) - 4 locations
+            {name:"Hanson - Birdsboro",addr:"100 Quarry Rd, Birdsboro, PA 19508",lat:40.2644,lng:-75.8056,type:["aggregate"],state:"PA"},
+            {name:"Heidelberg - Nazareth",addr:"5100 Bath Pike, Nazareth, PA 18064",lat:40.7234,lng:-75.3012,type:["cement"],state:"PA"},
+            {name:"Heidelberg - Evansville",addr:"2700 Evansville Rd, Morgantown, PA 19543",lat:40.1678,lng:-75.8934,type:["cement"],state:"PA"},
+            {name:"Keystone Cement - Bath",addr:"Route 248, Bath, PA 18014",lat:40.7256,lng:-75.3934,type:["cement"],state:"PA"},
+            
+            // BUZZI UNICEM (PA)
+            {name:"Buzzi Unicem - Stockertown",addr:"4001 Green Pond Rd, Stockertown, PA 18083",lat:40.7567,lng:-75.2678,type:["cement"],state:"PA"},
+            
+            // HAINES & KIBBLEHOUSE (PA) - 3 locations
+            {name:"Haines & Kibblehouse - Skippack",addr:"2052 Lucon Rd, Skippack, PA 19474",lat:40.2456,lng:-75.4245,type:["stone"],state:"PA"},
+            {name:"Haines & Kibblehouse - Plymouth",addr:"105 Haldeman Rd, Plymouth Meeting, PA 19462",lat:40.1089,lng:-75.2934,type:["stone"],state:"PA"},
+            {name:"Haines & Kibblehouse - Pennsburg",addr:"1450 Main St, Pennsburg, PA 18073",lat:40.3912,lng:-75.4934,type:["stone"],state:"PA"},
+            
+            // ALLAN MYERS (PA) - 2 locations
+            {name:"Allan Myers - Audubon",addr:"2820 Audubon Rd, Audubon, PA 19403",lat:40.1289,lng:-75.4367,type:["aggregate"],state:"PA"},
+            {name:"Allan Myers - Worcester",addr:"2001 Valley Forge Rd, Worcester, PA 19490",lat:40.1756,lng:-75.3456,type:["stone"],state:"PA"},
+            
+            // MARTIN STONE (PA)
+            {name:"Martin Stone - Oxford",addr:"501 Limestone Rd, Oxford, PA 19363",lat:39.8091,lng:-75.9589,type:["stone"],state:"PA"},
+            
+            // EASTERN INDUSTRIES (PA) - 2 locations
+            {name:"Eastern Industries - Center Valley",addr:"4401 Camp Meeting Rd, Center Valley, PA 18034",lat:40.5678,lng:-75.3912,type:["stone"],state:"PA"},
+            {name:"Eastern Industries - Hamburg",addr:"3620 NJ-23, Hamburg, NJ 07419",lat:41.1523,lng:-74.5789,type:["stone"],state:"NJ"},
+            
+            // NEW ENTERPRISE STONE (PA) - 3 locations
+            {name:"New Enterprise - New Enterprise",addr:"3912 Brumbaugh Rd, New Enterprise, PA 16664",lat:40.1678,lng:-78.4012,type:["stone"],state:"PA"},
+            {name:"New Enterprise - Lewisburg",addr:"230 Dales Quarry Rd, Lewisburg, PA 17837",lat:40.9645,lng:-76.8845,type:["stone"],state:"PA"},
+            {name:"New Enterprise - Clifford",addr:"5659 SR 374, Lenoxville, PA 18441",lat:41.6734,lng:-75.6123,type:["stone"],state:"PA"},
+            
+            // DYER QUARRY (PA)
+            {name:"Dyer Quarry - Birdsboro",addr:"345 Furnace Rd, Birdsboro, PA 19508",lat:40.2589,lng:-75.8234,type:["stone"],state:"PA"},
+            
+            // READING QUARRY (PA)
+            {name:"Reading Quarry",addr:"3201 N 5th St, Reading, PA 19605",lat:40.3678,lng:-75.9369,type:["stone"],state:"PA"},
+            
+            // INDEPENDENCE/SECANE (PA)
+            {name:"Independence - Secane",addr:"975 Providence Rd, Secane, PA 19018",lat:39.9123,lng:-75.3801,type:["aggregate"],state:"PA"},
+            
+            // BYLER QUARRIES (PA)
+            {name:"Byler - Middletown",addr:"2090 N Union St, Middletown, PA 17057",lat:40.2156,lng:-76.7289,type:["stone","cement"],state:"PA"},
+            
+            // VALLEY QUARRIES (PA)
+            {name:"Valley Quarries - Chambersburg",addr:"678 Quarry Rd, Chambersburg, PA 17201",lat:39.9378,lng:-77.6512,type:["stone"],state:"PA"},
+            
+            // POCONO (PA)
+            {name:"Pocono Sand & Gravel",addr:"1500 PA-611, Bartonsville, PA 18321",lat:40.9856,lng:-75.3245,type:["sand"],state:"PA"},
+            
+            // CALLANAN (NY) - 2 locations
+            {name:"Callanan - Selkirk",addr:"1 Callanan Rd, Selkirk, NY 12158",lat:42.5456,lng:-73.8089,type:["stone"],state:"NY"},
+            {name:"Callanan - Ravena",addr:"Route 9W, Ravena, NY 12143",lat:42.4789,lng:-73.8234,type:["stone"],state:"NY"},
+            
+            // CRANESVILLE (NY)
+            {name:"Cranesville Block - Warwick",addr:"45 Quarry Rd, Warwick, NY 10990",lat:41.2534,lng:-74.3589,type:["stone"],state:"NY"},
+            
+            // DELAWARE
+            {name:"Delaware Quarries - Wilmington",addr:"2701 Limestone Rd, Wilmington, DE 19808",lat:39.7734,lng:-75.5967,type:["stone"],state:"DE"},
+            {name:"York Building - Newark",addr:"1200 S College Ave, Newark, DE 19713",lat:39.6589,lng:-75.7456,type:["stone"],state:"DE"},
+            {name:"Glasgow Materials",addr:"2500 Pulaski Hwy, Glasgow, DE 19702",lat:39.6045,lng:-75.7389,type:["sand"],state:"DE"},
+            
+            // SOUTH JERSEY SAND - 3 locations
+            {name:"Tri-Borough Sand",addr:"300 S Black Horse Pike, Williamstown, NJ 08094",lat:39.6856,lng:-74.9945,type:["sand"],state:"NJ"},
+            {name:"Ward Sand - Millville",addr:"1500 N 2nd St, Millville, NJ 08332",lat:39.4234,lng:-75.0401,type:["sand"],state:"NJ"},
+            {name:"Ricci Bros Sand",addr:"2200 Main St, Port Norris, NJ 08349",lat:39.2423,lng:-75.0345,type:["sand"],state:"NJ"}
+        ];
+
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView([40.5, -75.5], 8);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap',
+                    maxZoom: 19
+                }).addTo(map);
+            }
+        }
+
+        async function geocode(addr) {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`);
+            const data = await res.json();
+            return data[0] ? {lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon)} : null;
+        }
+
+        async function getRoute(origin, dest) {
+            const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.code === 'Ok' && data.routes?.length) {
+                const r = data.routes[0];
+                return {
+                    distance: r.distance / 1609.34,
+                    duration: r.duration / 60,
+                    geometry: r.geometry.coordinates.map(c => [c[1], c[0]])
+                };
+            }
+            return null;
+        }
+
+        async function findClosest() {
+            const addr = document.getElementById('jobAddress').value.trim();
+            if (!addr) return showError('Please enter an address');
+
+            showLoading(true);
+            const dest = await geocode(addr);
+            if (!dest) {
+                showLoading(false);
+                return showError('Address not found');
+            }
+
+            markers.forEach(m => map.removeLayer(m));
+            polylines.forEach(p => map.removeLayer(p));
+            markers = []; polylines = [];
+
+            initMap();
+            const destMarker = L.marker([dest.lat, dest.lng]).addTo(map).bindPopup('Job Site');
+            markers.push(destMarker);
+
+            const routes = await Promise.all(LOCATIONS.map(async loc => {
+                const r = await getRoute(loc, dest);
+                return r ? {...loc, ...r} : null;
+            }));
+
+            const valid = routes.filter(r => r).sort((a,b) => a.distance - b.distance);
+            if (!valid.length) {
+                showLoading(false);
+                return showError('Could not calculate routes');
+            }
+
+            const closest = valid[0];
+            routeData = {dest, closest, all: valid};
+
+            const m = L.marker([closest.lat, closest.lng]).addTo(map);
+            m.bindPopup(`${closest.name}<br>${closest.distance.toFixed(1)} mi`);
+            markers.push(m);
+
+            if (closest.geometry) {
+                const line = L.polyline(closest.geometry, {color: closest.silvi ? '#1e40af' : '#059669', weight: 4}).addTo(map);
+                polylines.push(line);
+                map.fitBounds(line.getBounds());
+            }
+
+            document.getElementById('distance').value = closest.distance.toFixed(2);
+            document.getElementById('driveTime').value = Math.round(closest.duration);
+            document.getElementById('closestName').textContent = closest.name;
+            document.getElementById('closestDist').textContent = closest.distance.toFixed(1) + ' mi';
+            document.getElementById('closestTime').textContent = Math.round(closest.duration) + ' min';
+            
+            const silviRoutes = valid.filter(r => r.silvi);
+            document.getElementById('closestStatus').innerHTML = closest.silvi ? 
+                '<span style="color: var(--success)">SILVI WINS!</span>' :
+                (silviRoutes[0] ? `<span style="color: var(--danger)">+${(silviRoutes[0].distance - closest.distance).toFixed(1)} mi</span>` : 'N/A');
+
+            document.getElementById('routeInfo').style.display = 'block';
+            showLoading(false);
+            showSuccess('Closest location found!');
+        }
+
+        async function calculateRate() {
+            if (!routeData) return showError('Find closest location first');
+
+            const dist = parseFloat(document.getElementById('distance').value);
+            const time = parseFloat(document.getElementById('driveTime').value);
+            const material = document.getElementById('material').value;
+            const volume = parseFloat(document.getElementById('volume').value);
+            const capacity = parseFloat(document.getElementById('truckCapacity').value);
+            const fuel = parseFloat(document.getElementById('fuelPrice').value);
+            const wage = parseFloat(document.getElementById('driverWage').value);
+            const demand = document.getElementById('demand').value;
+
+            showLoading(true);
+
+            try {
+                const res = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 3000,
+                        messages: [{
+                            role: "user",
+                            content: `Calculate professional haul rate for construction materials using PC*MILER methodology.
+
+ROUTE DATA:
+- Distance: ${dist} miles (GPS verified)
+- Drive Time: ${time} minutes
+- Material: ${material}
+- Truck Capacity: ${capacity} tons
+
+COSTS:
+- Fuel: $${fuel}/gallon (6 MPG loaded, 8 MPG empty)
+- Driver: $${wage}/hour (includes benefits)
+- Load/Unload: 30 min total
+- Depreciation: $0.15/mile
+- Maintenance: $0.20/mile
+- Insurance: $0.05/mile
+
+MARKET:
+- Volume: ${volume} tons/month
+- Demand: ${demand}
+
+Calculate per-ton rate with:
+1. Fuel cost (round trip, different MPG)
+2. Labor cost (drive + load/unload time)
+3. Vehicle costs (depreciation + maintenance + insurance)
+4. Volume discount: <500t=0%, 500-1000t=5%, >1000t=8%
+5. Demand adjustment: high=+15%, normal=0%, low=-10%
+
+Return ONLY JSON (no markdown):
+{
+  "haulRate": <final $/ton>,
+  "components": {
+    "fuel": <$/ton>,
+    "labor": <$/ton>,
+    "vehicle": <$/ton>,
+    "discount": <$/ton>,
+    "demand": <$/ton>
+  },
+  "analysis": "<2-3 sentence strategic analysis>",
+  "profitMargin": <percentage>,
+  "priceRange": {"low": <number>, "high": <number>}
+}`
+                        }]
+                    })
+                });
+
+                const data = await res.json();
+                const result = JSON.parse(data.content[0].text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
+                displayResults(result, volume);
+                showLoading(false);
+            } catch (e) {
+                showLoading(false);
+                showError('Calculation failed');
+            }
+        }
+
+        function displayResults(r, vol) {
+            document.getElementById('rateValue').textContent = '$' + r.haulRate.toFixed(2);
+            
+            document.getElementById('breakdown').innerHTML = `
+                <div class="metric-card"><i class="fas fa-gas-pump"></i><div class="metric-label">Fuel</div><div class="metric-value">$${r.components.fuel.toFixed(2)}</div></div>
+                <div class="metric-card"><i class="fas fa-user-tie"></i><div class="metric-label">Labor</div><div class="metric-value">$${r.components.labor.toFixed(2)}</div></div>
+                <div class="metric-card"><i class="fas fa-truck"></i><div class="metric-label">Vehicle</div><div class="metric-value">$${r.components.vehicle.toFixed(2)}</div></div>
+                <div class="metric-card"><i class="fas fa-percent"></i><div class="metric-label">Discount</div><div class="metric-value">$${r.components.discount.toFixed(2)}</div></div>
+                <div class="metric-card"><i class="fas fa-chart-line"></i><div class="metric-label">Demand</div><div class="metric-value">$${r.components.demand.toFixed(2)}</div></div>
+                <div class="metric-card"><i class="fas fa-piggy-bank"></i><div class="metric-label">Profit</div><div class="metric-value">${r.profitMargin.toFixed(1)}%</div></div>
+            `;
+
+            document.getElementById('analysis').innerHTML = `
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">AI Analysis</h3>
+                <p style="line-height: 1.8;">${r.analysis}</p>
+                <div style="margin-top: 1.5rem; padding: 1rem; background: white; border-radius: 8px;">
+                    <strong>Price Range:</strong> $${r.priceRange.low.toFixed(2)} - $${r.priceRange.high.toFixed(2)} per ton<br>
+                    <strong>Monthly Revenue:</strong> $${(r.haulRate * vol).toLocaleString()}
+                </div>
+            `;
+
+            if (routeData?.all) {
+                const top = routeData.all.slice(0, 10);
+                document.getElementById('comparison').innerHTML = `
+                    <h3 style="color: var(--primary); margin: 2rem 0 1rem;">Top 10 Closest Competitors</h3>
+                    <table>
+                        <thead><tr><th>Rank</th><th>Location</th><th>State</th><th>Distance</th><th>Time</th><th>Est. Rate</th></tr></thead>
+                        <tbody>${top.map((loc, i) => `
+                            <tr ${loc.silvi ? 'style="background: rgba(30, 64, 175, 0.1); font-weight: 700;"' : ''}>
+                                <td>${i+1}</td>
+                                <td>${loc.silvi ? '⭐ ' : ''}${loc.name}</td>
+                                <td>${loc.state}</td>
+                                <td>${loc.distance.toFixed(1)} mi</td>
+                                <td>${Math.round(loc.duration)} min</td>
+                                <td>~$${(loc.distance * 0.85).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}</tbody>
+                    </table>
+                `;
+            }
+
+            document.getElementById('results').classList.add('show');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorAlert');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successAlert');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>

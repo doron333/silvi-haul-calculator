@@ -1110,12 +1110,14 @@
                 // Draw route line for the closest plant
                 if (closest.polyline) {
                     const decodedCoords = decodePolyline(closest.polyline);
-                    if (routeLine) map.removeLayer(routeLine);
-                    routeLine = L.polyline(decodedCoords, { 
-                        color: '#10b981',
-                        weight: 5,
-                        opacity: 0.8
-                    }).addTo(map);
+                    if (decodedCoords && decodedCoords.length > 0) {
+                        if (routeLine) map.removeLayer(routeLine);
+                        routeLine = L.polyline(decodedCoords, { 
+                            color: '#10b981',
+                            weight: 5,
+                            opacity: 0.8
+                        }).addTo(map);
+                    }
                 }
                 
                 // Fit map to show job + all plants
@@ -1304,39 +1306,50 @@
 
         // Decode Valhalla polyline (encoded polyline format)
         function decodePolyline(encoded, precision = 6) {
+            // Safety check
+            if (!encoded || typeof encoded !== 'string') {
+                console.error('Invalid polyline data:', encoded);
+                return [];
+            }
+            
             const factor = Math.pow(10, precision);
             let index = 0;
             let lat = 0;
             let lng = 0;
             const coordinates = [];
             
-            while (index < encoded.length) {
-                let b;
-                let shift = 0;
-                let result = 0;
-                
-                do {
-                    b = encoded.charCodeAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                
-                const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-                lat += dlat;
-                
-                shift = 0;
-                result = 0;
-                
-                do {
-                    b = encoded.charCodeAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                
-                const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-                lng += dlng;
-                
-                coordinates.push([lat / factor, lng / factor]);
+            try {
+                while (index < encoded.length) {
+                    let b;
+                    let shift = 0;
+                    let result = 0;
+                    
+                    do {
+                        b = encoded.charCodeAt(index++) - 63;
+                        result |= (b & 0x1f) << shift;
+                        shift += 5;
+                    } while (b >= 0x20);
+                    
+                    const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lat += dlat;
+                    
+                    shift = 0;
+                    result = 0;
+                    
+                    do {
+                        b = encoded.charCodeAt(index++) - 63;
+                        result |= (b & 0x1f) << shift;
+                        shift += 5;
+                    } while (b >= 0x20);
+                    
+                    const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lng += dlng;
+                    
+                    coordinates.push([lat / factor, lng / factor]);
+                }
+            } catch (error) {
+                console.error('Polyline decode error:', error);
+                return [];
             }
             
             return coordinates;

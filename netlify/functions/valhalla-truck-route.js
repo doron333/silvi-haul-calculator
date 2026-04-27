@@ -2,6 +2,10 @@
 const axios = require('axios');
 
 exports.handler = async (event, context) => {
+    console.log('=== Valhalla Function Called ===');
+    console.log('Method:', event.httpMethod);
+    console.log('Body:', event.body);
+    
     // Enable CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -25,7 +29,9 @@ exports.handler = async (event, context) => {
         };
     }
     
-    const { from, to, truckType, avoidTolls } = JSON.parse(event.body);
+    try {
+        const { from, to, truckType, avoidTolls } = JSON.parse(event.body);
+        console.log('Parsed request:', { from, to, truckType, avoidTolls });
     
     // Tri-axle dump truck presets
     const truckPresets = {
@@ -53,8 +59,10 @@ exports.handler = async (event, context) => {
     };
     
     const specs = truckPresets[truckType] || truckPresets.triaxle;
+    console.log('Using truck specs:', specs);
     
     try {
+        console.log('Calling Valhalla API...');
         const response = await axios.post(
             'https://valhalla1.openstreetmap.de/route',
             {
@@ -156,6 +164,7 @@ exports.handler = async (event, context) => {
                 })
             };
         } catch (fallbackError) {
+            console.error('Fallback also failed:', fallbackError);
             return {
                 statusCode: 500,
                 headers,
@@ -166,6 +175,18 @@ exports.handler = async (event, context) => {
                 })
             };
         }
+    }
+    } catch (outerError) {
+        console.error('Function error:', outerError);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                success: false, 
+                error: 'Function execution failed',
+                details: outerError.message 
+            })
+        };
     }
 };
 

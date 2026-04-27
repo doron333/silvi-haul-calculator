@@ -1,23 +1,26 @@
-// EIA Fuel Prices - Vercel Serverless Function
+// EIA Fuel Prices - Netlify Serverless Function
 const axios = require('axios');
 
-module.exports = async (req, res) => {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+exports.handler = async (event, context) => {
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS'
+    };
     
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers, body: '' };
     }
     
-    const { state } = req.query;
+    const { state } = event.queryStringParameters || {};
     const EIA_API_KEY = process.env.EIA_API_KEY;
     
     if (!EIA_API_KEY) {
-        return res.status(500).json({ error: 'EIA API key not configured' });
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: 'EIA API key not configured' })
+        };
     }
     
     const stateCode = state ? state.toUpperCase() : 'US';
@@ -34,28 +37,36 @@ module.exports = async (req, res) => {
         const gasolineData = gasolineResponse.data.response.data[0];
         const dieselData = dieselResponse.data.response.data[0];
         
-        res.status(200).json({
-            success: true,
-            data: {
-                state: stateCode,
-                gasoline: parseFloat(gasolineData.value),
-                diesel: parseFloat(dieselData.value),
-                lastUpdate: gasolineData.period,
-                source: 'U.S. Energy Information Administration'
-            }
-        });
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                success: true,
+                data: {
+                    state: stateCode,
+                    gasoline: parseFloat(gasolineData.value),
+                    diesel: parseFloat(dieselData.value),
+                    lastUpdate: gasolineData.period,
+                    source: 'U.S. Energy Information Administration'
+                }
+            })
+        };
         
     } catch (error) {
         console.error('EIA API error:', error.message);
-        res.status(200).json({
-            success: true,
-            data: {
-                state: stateCode,
-                gasoline: 3.50,
-                diesel: 4.25,
-                lastUpdate: new Date().toISOString().split('T')[0],
-                source: 'Fallback estimates'
-            }
-        });
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                success: true,
+                data: {
+                    state: stateCode,
+                    gasoline: 3.50,
+                    diesel: 4.25,
+                    lastUpdate: new Date().toISOString().split('T')[0],
+                    source: 'Fallback estimates'
+                }
+            })
+        };
     }
 };

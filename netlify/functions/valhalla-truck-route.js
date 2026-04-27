@@ -1,23 +1,31 @@
-// Valhalla Truck Routing - Vercel Serverless Function
+// Valhalla Truck Routing - Netlify Serverless Function
 const axios = require('axios');
 
-module.exports = async (req, res) => {
+exports.handler = async (event, context) => {
     // Enable CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    };
     
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: ''
+        };
     }
     
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            headers,
+            body: JSON.stringify({ error: 'Method not allowed' })
+        };
     }
     
-    const { from, to, truckType, avoidTolls } = req.body;
+    const { from, to, truckType, avoidTolls } = JSON.parse(event.body);
     
     // Tri-axle dump truck presets
     const truckPresets = {
@@ -98,23 +106,27 @@ module.exports = async (req, res) => {
         
         const tollCost = calculateTollCost(tollBooths, specs.axle_count);
         
-        res.status(200).json({
-            success: true,
-            data: {
-                distance: summary.length * 0.621371,
-                duration: summary.time / 60,
-                polyline: route.shape,
-                warnings: warnings,
-                directions: directions,
-                tollBooths: tollBooths.length,
-                estimatedTollCost: tollCost,
-                hasTolls: tollBooths.length > 0,
-                truckType: truckType,
-                truckSpecs: specs,
-                routingEngine: 'Valhalla Truck',
-                avoidedTolls: avoidTolls
-            }
-        });
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                success: true,
+                data: {
+                    distance: summary.length * 0.621371,
+                    duration: summary.time / 60,
+                    polyline: route.shape,
+                    warnings: warnings,
+                    directions: directions,
+                    tollBooths: tollBooths.length,
+                    estimatedTollCost: tollCost,
+                    hasTolls: tollBooths.length > 0,
+                    truckType: truckType,
+                    truckSpecs: specs,
+                    routingEngine: 'Valhalla Truck',
+                    avoidedTolls: avoidTolls
+                }
+            })
+        };
         
     } catch (error) {
         console.error('Valhalla routing error:', error.message);
@@ -125,26 +137,34 @@ module.exports = async (req, res) => {
             
             const fallbackRoute = fallbackResponse.data.routes[0];
             
-            res.status(200).json({
-                success: true,
-                data: {
-                    distance: fallbackRoute.distance / 1609.34,
-                    duration: fallbackRoute.duration / 60,
-                    polyline: fallbackRoute.geometry.coordinates,
-                    warnings: ['⚠️ Using basic routing - truck restrictions NOT considered'],
-                    tollBooths: 0,
-                    estimatedTollCost: 0,
-                    hasTolls: false,
-                    truckType: truckType,
-                    routingEngine: 'OSRM Fallback (NOT truck-aware)'
-                }
-            });
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    success: true,
+                    data: {
+                        distance: fallbackRoute.distance / 1609.34,
+                        duration: fallbackRoute.duration / 60,
+                        polyline: fallbackRoute.geometry.coordinates,
+                        warnings: ['⚠️ Using basic routing - truck restrictions NOT considered'],
+                        tollBooths: 0,
+                        estimatedTollCost: 0,
+                        hasTolls: false,
+                        truckType: truckType,
+                        routingEngine: 'OSRM Fallback (NOT truck-aware)'
+                    }
+                })
+            };
         } catch (fallbackError) {
-            res.status(500).json({ 
-                success: false, 
-                error: 'Both Valhalla and OSRM routing failed',
-                details: error.message 
-            });
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Both Valhalla and OSRM routing failed',
+                    details: error.message 
+                })
+            };
         }
     }
 };

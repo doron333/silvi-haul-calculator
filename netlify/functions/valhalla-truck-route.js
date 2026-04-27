@@ -67,8 +67,8 @@ exports.handler = async (event, context) => {
             'https://valhalla1.openstreetmap.de/route',
             {
                 locations: [
-                    { lat: from.lat, lon: from.lng },
-                    { lat: to.lat, lon: to.lng }
+                    { lat: from.lat, lon: from.lon || from.lng },
+                    { lat: to.lat, lon: to.lon || to.lng }
                 ],
                 costing: "truck",
                 costing_options: {
@@ -138,9 +138,13 @@ exports.handler = async (event, context) => {
         
     } catch (error) {
         console.error('Valhalla routing error:', error.message);
+        console.log('Valhalla error details:', error.response?.data);
         
         try {
-            const fallbackUrl = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
+            const fromLng = from.lon || from.lng;
+            const toLng = to.lon || to.lng;
+            const fallbackUrl = `https://router.project-osrm.org/route/v1/driving/${fromLng},${from.lat};${toLng},${to.lat}?overview=full&geometries=geojson`;
+            console.log('Trying OSRM fallback:', fallbackUrl);
             const fallbackResponse = await axios.get(fallbackUrl);
             
             const fallbackRoute = fallbackResponse.data.routes[0];

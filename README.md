@@ -282,3 +282,4 @@ Ctrl+C
 **Built for Silvi Materials by Matt Doron**
 
 **Professional haul rate calculation made simple.** 🚀
+# Vercel deployment trigger
